@@ -95,6 +95,29 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*A
 }
 
 
+func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]byte , error) {
+	mecharena, mech := cMechanism(m)
+        defer mecharena.Free()
+        privatekeyC := C.CK_BYTE_PTR(unsafe.Pointer(&sk[0]))
+        privatekeyLenC := C.CK_ULONG(len(sk))
+	dataC :=  C.CK_BYTE_PTR(unsafe.Pointer(&data[0]))
+        datalenC :=  C.CK_ULONG(len(data))
+	sig := make([]byte,MAX_BLOB_SIZE)
+        sigC := C.CK_BYTE_PTR(unsafe.Pointer(&sig[0]))
+        siglenC :=  C.CK_ULONG(len(sig))
+
+	rv := C.m_SignSingle(privatekeyC, privatekeyLenC, mech, dataC, datalenC, sigC, &siglenC, target)
+    if rv != C.CKR_OK {
+                  e1 := toError(rv)
+	return nil,  e1
+    }
+          sig = sig[:siglenC]
+	  return sig,nil
+//	fmt.Println("Signature:", hex.EncodeToString(sig))
+
+}
+
+
 func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 	// Allocate memory for the random bytes
 	randomData := make([]byte, length)
@@ -150,6 +173,7 @@ func main() {
         }
 
 	var pk, sk KeyBlob
+	var  sig []byte
 	for i:=0;i<10;i++ {
        //   _,_ , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
           pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
@@ -157,6 +181,9 @@ func main() {
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
 	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 	fmt.Println("\n")
+
+	sig,_ = SignSingle(target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},sk,[]byte("helloworld"))
+	fmt.Println("Signature: ", hex.EncodeToString(sig))
 		}
 
 }

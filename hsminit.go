@@ -39,7 +39,8 @@ func hsminit(adapter uint, domain int) C.target_t {
       module.domainmask[i] = 0
     }
     XCPTGTMASK_SET_DOM(&module.domainmask, domain)
-    module.flags |= C.XCP_MFL_MODULE | C.XCP_MFL_PROBE
+    //    module.flags |= C.XCP_MFL_MODULE | C.XCP_MFL_PROBE
+    module.flags |= C.XCP_MFL_VIRTUAL | C.XCP_MFL_PROBE | C.XCP_MFL_MODULE
     rc = C.m_add_module(&module, &target)
     fmt.Printf("Module Initialiation Return Code: %d\n",rc)
     return target
