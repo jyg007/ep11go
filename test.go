@@ -66,7 +66,7 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp []*Attribute) (KeyBlob,
 }
 
 //func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) ([]byte , error) {
-func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte )  {
+func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) ([]byte, error) {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
         keyC := C.CK_BYTE_PTR(unsafe.Pointer(&k[0]))
@@ -82,12 +82,12 @@ func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte )  
 	rv := C.m_EncryptSingle(keyC, keyLenC, mech, dataC, datalenC, cipherC, &cipherlenC, target)
     if rv != C.CKR_OK {
                   e1 := toError(rv)
-	    fmt.Printf("zeeue",e1)
-//	return nil,  e1
+	 //   fmt.Printf("zeeue",e1)
+	return nil,  e1
     }
           cipher = cipher[:cipherlenC]
-	//  return sig,nil
-	fmt.Println("Cipher:", hex.EncodeToString(cipher))
+	  return cipher,nil
+	//fmt.Println("Cipher:", hex.EncodeToString(cipher))
 }
 
 //func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute) (KeyBlob, error)  {
@@ -185,6 +185,7 @@ func main() {
 }
 
 	var aeskey KeyBlob
+	var Cipher []byte
 	for i:=0;i<1;i++ {
         	aeskey, _ = GenerateKey(target,
                 	[]*Mechanism{NewMechanism(C.CKM_AES_KEY_GEN, nil)},
@@ -193,11 +194,12 @@ func main() {
 
 	iv:= make([]byte,16)
         hex.Decode(iv,[]byte("3132333435360a"))
-	EncryptSingle(target, 
+	Cipher,_ = EncryptSingle(target, 
 			[]*Mechanism{NewMechanism(C.CKM_AES_CBC_PAD, iv)},
 			aeskey ,
 			[]byte("hello world hello world hello world"),
 		)
+	fmt.Println("Cipher:", hex.EncodeToString(Cipher))
 	}
 
 	OIDNamedCurveSecp256k1 := asn1.ObjectIdentifier{1, 3, 132, 0, 10}
