@@ -159,6 +159,8 @@ func NewMechanism(mech uint, x interface{}) *Mechanism {
 		// contains pointers; defer serialization until cMechanism
 		m.generator = p
 	case []byte:
+		//fmt.Printf("**********************")
+		//fmt.Printf("%d",len(p))
 		m.Parameter = p
 	default:
 		panic("parameter must be one of type: []byte, *GCMParams, *OAEPParams, *ECDH1DeriveParams")

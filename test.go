@@ -22,6 +22,7 @@ const (
      // Maximum Key Size
         MAX_BLOB_SIZE = 8192
         MAX_CSUMSIZE = 64
+	MAX_BLOCK_SIZE = 256 / 8
 )
 
 type KeyBlob []byte  
@@ -64,6 +65,30 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp []*Attribute) (KeyBlob,
 	return Key, nil
 }
 
+//func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) ([]byte , error) {
+func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte )  {
+	mecharena, mech := cMechanism(m)
+        defer mecharena.Free()
+        keyC := C.CK_BYTE_PTR(unsafe.Pointer(&k[0]))
+        keyLenC := C.CK_ULONG(len(k))
+	dataC :=  C.CK_BYTE_PTR(unsafe.Pointer(&data[0]))
+        datalenC :=  C.CK_ULONG(len(data))
+
+        cipherLen := datalenC + MAX_BLOCK_SIZE
+        cipherlenC := (C.CK_ULONG)(cipherLen)
+        cipher := make([]byte, cipherLen)
+        cipherC := (C.CK_BYTE_PTR)(unsafe.Pointer(&cipher[0]))
+
+	rv := C.m_EncryptSingle(keyC, keyLenC, mech, dataC, datalenC, cipherC, &cipherlenC, target)
+    if rv != C.CKR_OK {
+                  e1 := toError(rv)
+	    fmt.Printf("zeeue",e1)
+//	return nil,  e1
+    }
+          cipher = cipher[:cipherlenC]
+	//  return sig,nil
+	fmt.Println("Cipher:", hex.EncodeToString(cipher))
+}
 
 //func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute) (KeyBlob, error)  {
 func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute)  (KeyBlob, KeyBlob , error) {
@@ -117,6 +142,19 @@ func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]
 
 }
 
+func VerifySingle(target C.target_t, m []*Mechanism, pk KeyBlob, data []byte ,sig []byte) C.CK_RV {
+	mecharena, mech := cMechanism(m)
+        defer mecharena.Free()
+        publickeyC := C.CK_BYTE_PTR(unsafe.Pointer(&pk[0]))
+        publickeyLenC := C.CK_ULONG(len(pk))
+	dataC :=  C.CK_BYTE_PTR(unsafe.Pointer(&data[0]))
+        datalenC :=  C.CK_ULONG(len(data))
+        sigC := C.CK_BYTE_PTR(unsafe.Pointer(&sig[0]))
+        siglenC :=  C.CK_ULONG(len(sig))
+	rv := C.m_VerifySingle(publickeyC, publickeyLenC, mech, dataC, datalenC, sigC,siglenC, target)
+	return rv
+}
+
 
 func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 	// Allocate memory for the random bytes
@@ -141,7 +179,7 @@ func main() {
                 NewAttribute(C.CKA_ENCRYPT, true),
       }
 
-	for i:=0;i<10;i++ {
+	for i:=0;i<1;i++ {
       k, _ :=GenerateRandom(target, 128)
       fmt.Println("Generated random 32 bytes Key:", hex.EncodeToString(k))
 }
@@ -152,6 +190,14 @@ func main() {
                 	[]*Mechanism{NewMechanism(C.CKM_AES_KEY_GEN, nil)},
 	                keyTemplate)
 		fmt.Println("Generated Key:", hex.EncodeToString(aeskey))
+
+	iv:= make([]byte,16)
+        hex.Decode(iv,[]byte("3132333435360a"))
+	EncryptSingle(target, 
+			[]*Mechanism{NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			aeskey ,
+			[]byte("hello world hello world hello world"),
+		)
 	}
 
 	OIDNamedCurveSecp256k1 := asn1.ObjectIdentifier{1, 3, 132, 0, 10}
@@ -174,7 +220,8 @@ func main() {
 
 	var pk, sk KeyBlob
 	var  sig []byte
-	for i:=0;i<10;i++ {
+	var  r C.CK_ULONG
+	for i:=0;i<1;i++ {
        //   _,_ , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
           pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
 
@@ -184,6 +231,13 @@ func main() {
 
 	sig,_ = SignSingle(target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
-		}
-
+ 
+        r = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("helloworld"), sig)
+        fmt.Printf("check %d\n",r)
+        r = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("heloworld"), sig)
+	if r == C.CKR_SIGNATURE_INVALID {
+                        //panic(fmt.Errorf("Invalid signature"))
+                        fmt.Println("Invalid signature")
+	}
+}
 }
