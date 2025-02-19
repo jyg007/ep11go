@@ -28,7 +28,8 @@ const (
 type KeyBlob []byte  
 
 
-// GenerateKey generates a secret key, creating a new key object.
+//l##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func GenerateKey(target C.target_t, m []*Mechanism, temp []*Attribute) (KeyBlob, error)  {
         attrarena, t, tcount := cAttributeList(temp)
         defer attrarena.Free()
@@ -52,20 +53,11 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp []*Attribute) (KeyBlob,
 	Key = Key[:keyLenC]
 	CheckSum = CheckSum[:checkSumLenC]
 
-//	keySlice := unsafe.Slice((*byte)(unsafe.Pointer(keyC)), keyLenC)
-	//	C.free(unsafe.Pointer(checkSumC))
-/*	fmt.Println("Generated Key:", hex.EncodeToString(keySlice))
-	fmt.Printf("Key Length: %d\n", uint64(keyLenC))
-	checkSumSlice := unsafe.Slice((*byte)(unsafe.Pointer(checkSumC)), checkSumLenC)
-/*        e1 := toError(e)
-        if e1 == nil {
-                return ObjectHandle(key), nil
-        }
-        return 0, e1*/
 	return Key, nil
 }
 
-//func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) ([]byte , error) {
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) ([]byte, error) {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
@@ -80,17 +72,44 @@ func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) (
         cipherC := (C.CK_BYTE_PTR)(unsafe.Pointer(&cipher[0]))
 
 	rv := C.m_EncryptSingle(keyC, keyLenC, mech, dataC, datalenC, cipherC, &cipherlenC, target)
-    if rv != C.CKR_OK {
+        if rv != C.CKR_OK {
                   e1 := toError(rv)
 	 //   fmt.Printf("zeeue",e1)
-	return nil,  e1
-    }
-          cipher = cipher[:cipherlenC]
-	  return cipher,nil
+		return nil,  e1
+        }
+        cipher = cipher[:cipherlenC]
+	return cipher,nil
 	//fmt.Println("Cipher:", hex.EncodeToString(cipher))
 }
 
-//func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute) (KeyBlob, error)  {
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func DecryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, cipher []byte ) ([]byte, error) {
+	mecharena, mech := cMechanism(m)
+        defer mecharena.Free()
+        keyC := C.CK_BYTE_PTR(unsafe.Pointer(&k[0]))
+        keyLenC := C.CK_ULONG(len(k))
+	cipherC :=  C.CK_BYTE_PTR(unsafe.Pointer(&cipher[0]))
+        cipherlenC :=  C.CK_ULONG(len(cipher))
+
+        plainLen := cipherlenC + MAX_BLOCK_SIZE
+        plainlenC := (C.CK_ULONG)(plainLen)
+        plain := make([]byte, plainLen)
+        plainC := (C.CK_BYTE_PTR)(unsafe.Pointer(&plain[0]))
+
+	rv := C.m_DecryptSingle(keyC, keyLenC, mech, cipherC, cipherlenC, plainC, &plainlenC, target)
+    	if rv != C.CKR_OK {
+                  e1 := toError(rv)
+	 //   fmt.Printf("zeeue",e1)
+		return nil,  e1
+    	}
+        plain = plain[:plainlenC]
+	return plain,nil
+	//fmt.Println("Cipher:", hex.EncodeToString(cipher))
+}
+
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute)  (KeyBlob, KeyBlob , error) {
         attrarena1, t1, tcount1 := cAttributeList(pk)
         defer attrarena1.Free()
@@ -120,6 +139,8 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*A
 }
 
 
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]byte , error) {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
@@ -132,17 +153,18 @@ func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]
         siglenC :=  C.CK_ULONG(len(sig))
 
 	rv := C.m_SignSingle(privatekeyC, privatekeyLenC, mech, dataC, datalenC, sigC, &siglenC, target)
-    if rv != C.CKR_OK {
+    	if rv != C.CKR_OK {
                   e1 := toError(rv)
-	return nil,  e1
-    }
-          sig = sig[:siglenC]
-	  return sig,nil
+		return nil,  e1
+    	}
+        sig = sig[:siglenC]
+	return sig,nil
 //	fmt.Println("Signature:", hex.EncodeToString(sig))
-
 }
 
-func VerifySingle(target C.target_t, m []*Mechanism, pk KeyBlob, data []byte ,sig []byte) C.CK_RV {
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func VerifySingle(target C.target_t, m []*Mechanism, pk KeyBlob, data []byte ,sig []byte) error {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
         publickeyC := C.CK_BYTE_PTR(unsafe.Pointer(&pk[0]))
@@ -152,10 +174,16 @@ func VerifySingle(target C.target_t, m []*Mechanism, pk KeyBlob, data []byte ,si
         sigC := C.CK_BYTE_PTR(unsafe.Pointer(&sig[0]))
         siglenC :=  C.CK_ULONG(len(sig))
 	rv := C.m_VerifySingle(publickeyC, publickeyLenC, mech, dataC, datalenC, sigC,siglenC, target)
-	return rv
+	if rv == 0  {
+		return nil
+	} else {
+		return toError(rv)
+	}
 }
 
 
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 	// Allocate memory for the random bytes
 	randomData := make([]byte, length)
@@ -163,13 +191,14 @@ func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 
 	// Check return value for success
 	if rv != C.CKR_OK {
-		return nil, fmt.Errorf("C_GenerateRandom failed with error code: 0x%X", uint(rv))
+		return nil, toError(rv)
 	}
 	return randomData, nil
 }
 
 
-
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 func main() { 
       target := hsminit(3,19) 
  
@@ -180,12 +209,14 @@ func main() {
       }
 
 	for i:=0;i<1;i++ {
-      k, _ :=GenerateRandom(target, 128)
-      fmt.Println("Generated random 32 bytes Key:", hex.EncodeToString(k))
-}
+      		k, _ :=GenerateRandom(target, 128)
+      		fmt.Println("Generated random 32 bytes Key:", hex.EncodeToString(k))
+	}
+	fmt.Println()
 
 	var aeskey KeyBlob
-	var Cipher []byte
+	var Cipher,plain []byte
+        var err error
 	for i:=0;i<1;i++ {
         	aeskey, _ = GenerateKey(target,
                 	[]*Mechanism{NewMechanism(C.CKM_AES_KEY_GEN, nil)},
@@ -200,8 +231,22 @@ func main() {
 			[]byte("hello world hello world hello world"),
 		)
 	fmt.Println("Cipher:", hex.EncodeToString(Cipher))
+        
+	plain,err = DecryptSingle(target, 
+			[]*Mechanism{NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			aeskey ,
+			Cipher,
+		)
+	if plain == nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Decrypted:", string(plain))
+	}
 	}
 
+
+
+	fmt.Printf("\n\n\n")
 	OIDNamedCurveSecp256k1 := asn1.ObjectIdentifier{1, 3, 132, 0, 10}
 
         ecParameters, err := asn1.Marshal(OIDNamedCurveSecp256k1)
@@ -222,24 +267,95 @@ func main() {
 
 	var pk, sk KeyBlob
 	var  sig []byte
-	var  r C.CK_ULONG
-	for i:=0;i<1;i++ {
-       //   _,_ , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
-          pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+        pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
 
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
-	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 	fmt.Println("\n")
+	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 
 	sig,_ = SignSingle(target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
  
-        r = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("helloworld"), sig)
-        fmt.Printf("check %d\n",r)
-        r = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("heloworld"), sig)
-	if r == C.CKR_SIGNATURE_INVALID {
-                        //panic(fmt.Errorf("Invalid signature"))
-                        fmt.Println("Invalid signature")
+        err = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("helloworld"), sig)
+	if err != nil   {
+                        fmt.Println(err)
 	}
-}
+        
+
+	fmt.Printf("\n\n\n")
+	OIDNamedCurveED25519 :=  asn1.ObjectIdentifier{1, 3, 101, 112}
+
+        ecParameters, err = asn1.Marshal(OIDNamedCurveED25519)
+        if err != nil {
+               panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
+        }
+
+	publicKeyECTemplate = []*Attribute{
+		    NewAttribute(C.CKA_EC_PARAMS,ecParameters),
+		    NewAttribute(C.CKA_VERIFY,true),
+        }
+	privateKeyECTemplate = []*Attribute{
+		    NewAttribute(C.CKA_EC_PARAMS,ecParameters),
+		    NewAttribute(C.CKA_SIGN,true),
+		    NewAttribute(C.CKA_PRIVATE,true),
+		    NewAttribute(C.CKA_SENSITIVE,true),
+        }
+
+        pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+
+	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
+	fmt.Println("\n")
+	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
+
+	sig,_ = SignSingle(target, []*Mechanism{NewMechanism(C.CKM_IBM_ED25519_SHA512,nil)},sk,[]byte("helloworld"))
+	fmt.Println("Signature: ", hex.EncodeToString(sig))
+ 
+        err = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_IBM_ED25519_SHA512,nil)},pk, []byte("helloworld"), sig)
+	if err != nil   {
+                        fmt.Println(err)
+	}
+
+
+
+	fmt.Printf("\n\n\n")
+	OIDBLS12_381ET := asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 999, 3, 2}
+
+        ecParameters, err = asn1.Marshal(OIDBLS12_381ET)
+        if err != nil {
+               panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
+        }
+
+	publicKeyECTemplate = []*Attribute{
+		    NewAttribute(C.CKA_EC_PARAMS,ecParameters),
+		    NewAttribute(C.CKA_VERIFY,true), 
+		    NewAttribute(C.CKA_IBM_USE_AS_DATA, true),
+		    NewAttribute(C.CKA_KEY_TYPE, C.CKK_EC),
+
+        }
+	privateKeyECTemplate = []*Attribute{
+		    NewAttribute(C.CKA_EC_PARAMS,ecParameters),
+		    NewAttribute(C.CKA_SIGN,true),
+		    NewAttribute(C.CKA_PRIVATE,true),
+		    NewAttribute(C.CKA_SENSITIVE,true),
+		    NewAttribute(C.CKA_IBM_USE_AS_DATA,true),
+		    NewAttribute(C.CKA_KEY_TYPE, C.CKK_EC),
+
+        }
+
+        pk, sk , _= GenerateKeyPair(target, []*Mechanism{NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+
+	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
+	fmt.Println("\n")
+	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
+
+	sig,_ = SignSingle(target, []*Mechanism{NewMechanism(C.CKM_IBM_ECDSA_OTHER,NewECSGParams(C.ECSG_IBM_BLS))},sk,[]byte("helloworld"))
+	fmt.Println("Signature: ", hex.EncodeToString(sig))
+ 
+        err = VerifySingle( target, []*Mechanism{NewMechanism(C.CKM_IBM_ECDSA_OTHER,NewECSGParams(C.ECSG_IBM_BLS))},pk, []byte("helloworld"), sig)
+	if err != nil   {
+                        fmt.Println(err)
+	}
+
+
+
 }

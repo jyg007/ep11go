@@ -17,6 +17,7 @@ static inline void putOAEPParams(CK_RSA_PKCS_OAEP_PARAMS_PTR params, CK_VOID_PTR
 */
 import "C"
 import "unsafe"
+import "encoding/binary" 
 
 // GCMParams represents the parameters for the AES-GCM mechanism.
 type GCMParams struct {
@@ -197,3 +198,14 @@ func cRSAAESKeyWrapParams(p *RSAAESKeyWrapParams, arena arena) ([]byte, arena) {
 	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params)), arena
 }
 */
+/*
+type  ECSGParams struct {
+	Type  C.int
+}
+*/
+func NewECSGParams( t C.int) []byte {
+    p := make([]byte, 4)
+    binary.BigEndian.PutUint32(p, uint32(t))	
+    return p
+    
+}
