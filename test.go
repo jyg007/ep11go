@@ -508,12 +508,20 @@ func main() {
 
 	Params := BTCDeriveParams{Type: C.CK_IBM_SLIP0010_MASTERK, ChildKeyIndex: 0, ChainCode: nil, Version : 1,} 
 
-	var NewKey,CheckCode KeyBlob
-NewKey, CheckCode, err =  DeriveKey(target , 
+	var NewKey,k2,ChainCode KeyBlob
+NewKey, ChainCode, err =  DeriveKey(target , 
 			[]*Mechanism{NewMechanism(C.CKM_IBM_BTC_DERIVE,NewBTCDerviceParams(Params))} , 
 			masterseed,
 			DeriveKeyTemplate  )  
         
 	fmt.Println("Masterseed:", hex.EncodeToString(NewKey))
-	fmt.Println("Masterseed:", hex.EncodeToString(CheckCode))
+	fmt.Println("ChainCode:", hex.EncodeToString(ChainCode))
+	Params = BTCDeriveParams{Type: C.CK_IBM_SLIP0010_PRV2PUB, ChildKeyIndex: 0, ChainCode: ChainCode, Version : 1,} 
+k2, ChainCode, err =  DeriveKey(target , 
+			[]*Mechanism{NewMechanism(C.CKM_IBM_BTC_DERIVE,NewBTCDerviceParams(Params))} , 
+			NewKey,
+			DeriveKeyTemplate  )  
+        
+	fmt.Println("Childpub:", hex.EncodeToString(k2))
+	fmt.Println("ChainCode:", hex.EncodeToString(ChainCode))
 }
