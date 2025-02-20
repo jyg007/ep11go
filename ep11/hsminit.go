@@ -1,4 +1,4 @@
-package main
+package ep11
 
 /*
 #cgo LDFLAGS: -lep11
@@ -23,7 +23,7 @@ func XCPTGTMASK_SET_DOM(mask *[32]C.uchar, domain int) {
 }
 
 
-func hsminit(adapter uint, domain int) C.target_t {
+func HsmInit(adapter uint, domain int) C.target_t {
     rc := C.m_init()
     if rc != C.XCP_OK {
             log.Fatalf("ep11 init error")

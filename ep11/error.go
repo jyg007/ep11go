@@ -1,4 +1,4 @@
-package main 
+package ep11
 
 // awk '/#define CKR_/{ print $3":\""$2"\"," }' pkcs11t.h
 

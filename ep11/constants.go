@@ -1,4 +1,4 @@
-package main
+package ep11
 
 const (
         // Maximum Key Size
@@ -12,7 +12,7 @@ const (
         DES_BLOCK_SIZE = 8
 
         // Max digest output bytes
-        MAX_DIGEST_BYTES = 512 / 8
+        MAX_DIGEST_BYTES = 512 / 8 
 
         // MAX_DIGEST_STATE_BYTES is the maximum size of wrapped digest state blobs
         //   -- Section 10.1 Function descriptions, EP11 design Document
@@ -21,4 +21,3 @@ const (
 
         CK_UNAVAILABLE_INFORMATION uint64 = 0xFFFFFFFFFFFFFFFF
 )
-~
