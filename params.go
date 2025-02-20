@@ -7,7 +7,8 @@ package main
 /*
 #include <stdlib.h>
 #include <string.h>
-#include "pkcs11.h"
+#include <stdint.h>
+#include <ep11.h>
 
 static inline void putOAEPParams(CK_RSA_PKCS_OAEP_PARAMS_PTR params, CK_VOID_PTR pSourceData, CK_ULONG ulSourceDataLen)
 {
@@ -18,6 +19,8 @@ static inline void putOAEPParams(CK_RSA_PKCS_OAEP_PARAMS_PTR params, CK_VOID_PTR
 import "C"
 import "unsafe"
 import "encoding/binary" 
+//import "encoding/asn1" 
+import "fmt"
 
 // GCMParams represents the parameters for the AES-GCM mechanism.
 type GCMParams struct {
@@ -207,5 +210,71 @@ func NewECSGParams( t C.int) []byte {
     p := make([]byte, 4)
     binary.BigEndian.PutUint32(p, uint32(t))	
     return p
-    
 }
+
+
+type BTCDeriveParams struct {
+        Type                 int    
+        ChildKeyIndex        int     
+        ChainCode            []byte   
+        Version              int      
+}
+
+
+func NewBTCDerviceParams( p BTCDeriveParams)  []byte {
+	// Allocate slices of length 4 for integer fields
+	params := C.CK_IBM_BTC_DERIVE_PARAMS{
+		    _type:          C.CK_ULONG(p.Type),          // ✅ Convert to C.CK_ULONG
+    		    childKeyIndex: C.CK_ULONG(p.ChildKeyIndex), // ✅ Convert to C.CK_ULONG
+    		    pChainCode:    (*C.CK_BYTE)(C.calloc(C.size_t(len(p.ChainCode)),1)), // ✅ Allocate memory for ChainCode
+    		    ulChainCodeLen: C.CK_ULONG(len(p.ChainCode)),             // ✅ Convert to C.CK_ULONG
+    	 	    version:       C.CK_ULONG(p.Version),       // ✅ Convert to C.CK_ULONG
+}
+
+// Copy chain code data (if needed)
+if len(p.ChainCode) > 0 {
+    C.memcpy(unsafe.Pointer(params.pChainCode), unsafe.Pointer(&p.ChainCode[0]), C.size_t(len(p.ChainCode)))
+}
+
+// Convert struct to bytes
+return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
+}
+/*
+	params :=  C.CK_IBM_BTC_DERIVE_PARAMS{
+		type:   p.Type
+		childKeyIndex: p.ChildKeyIndex
+		pChainCode: make([]byte, 32)
+		ulChainCodeLen: 32
+        	version: p.Version
+	} 
+	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
+}
+
+
+/*
+
+	P := BTCDeriveParamsC{
+		Type:          make([]byte, 4),
+		ChildKeyIndex: make([]byte, 4),
+//		ChainCode:     p.ChainCode, // ChainCode is already a byte slice
+		ChainCode:     make([]byte, 32), // ChainCode is already a byte slice
+		Version:       make([]byte, 4),
+	}
+
+	// Convert integers to big-endian byte slices
+	binary.BigEndian.PutUint32(P.Type, uint32(p.Type))
+	binary.BigEndian.PutUint32(P.ChildKeyIndex, uint32(p.ChildKeyIndex))
+	binary.BigEndian.PutUint32(P.Version, uint32(p.Version))
+        if p.ChainCode == nil  {
+		p.ChainCode = make([]byte,C.XCP_BIP0032_CHAINCODE_BYTES)
+	}
+
+	encoded, err := asn1.Marshal(P)
+	 if err != nil {
+		fmt.Println("Encoding error:", err)
+		return nil
+	}
+
+	fmt.Printf("ASN.1 BER Encoded Data: %X\n", encoded)
+	return encoded
+}*/
