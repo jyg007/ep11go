@@ -27,5 +27,5 @@ func main() {
 
 
        sig,_ := ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ECDSA_OTHER,ep11.NewECSGParams(C.ECSG_IBM_BLS))},sk,signData[:])
-        fmt.Println("Signature: ", hex.EncodeToString(sig))
+       fmt.Print("Signature: %x\n", sig)
 }

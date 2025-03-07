@@ -13,7 +13,6 @@ package main
 */
 import "C"
 import "fmt"
-import "encoding/hex"
 import "encoding/asn1"
 import "ep11go/ep11"
 
@@ -24,7 +23,7 @@ func main() {
        target := ep11.HsmInit(3,19) 
  
        ecParameters, err := asn1.Marshal(ep11.OIDBLS12_381ET)
-       fmt.Println(hex.EncodeToString(ecParameters))
+
         if err != nil {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }
@@ -52,7 +51,7 @@ func main() {
         if err != nil   {
                         fmt.Println(err)
         } else {
-		fmt.Println("Private Key:", hex.EncodeToString(sk))
-		fmt.Println("\nPublic Key:", hex.EncodeToString(pk))
+		fmt.Printf("Private Key:\n%x\n\n", sk)
+		fmt.Printf("\nPublic Key:\n%x\n", pk)
 	}
 }

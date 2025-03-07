@@ -1,4 +1,4 @@
-all: keygenc testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls ep11-agg derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate
+all: keygenc testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls ep11-agg derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go
 
@@ -11,6 +11,12 @@ testcrypto: test.go ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go 
 	go build -o testcrypto test.go
 
 aescreatekey: aescreatekey.go
+	go build $^
+
+aesencrypt: aesencrypt.go
+	go build $^
+
+aesdecrypt: aesdecrypt.go
 	go build $^
 
 createblskeypair: createblskeypair.go
