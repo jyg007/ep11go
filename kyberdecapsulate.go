@@ -45,7 +45,7 @@ func main() {
 
 	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_DECAPSULATE , Kdf: C.CKD_NULL ,Cipher: checksum} 
 	
-	NewKeyBytes, CheckSum, err :=  ep11.DeriveKey( target , 
+	NewKeyBytes, _, err :=  ep11.DeriveKey( target , 
                         []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params))} , 
                         sk,
                         deriveKyberTemplate  )  
@@ -55,6 +55,6 @@ func main() {
 	}
 
         fmt.Printf("Derived AES key: %x\n\n",NewKeyBytes)
-        fmt.Printf("Checksum: %x\n\n",CheckSum[cipherTextOffset:])
+     //   fmt.Printf("Checksum: %x\n\n",CheckSum[cipherTextOffset:])
 	
   }
