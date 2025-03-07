@@ -22,6 +22,7 @@ func XCPTGTMASK_SET_DOM(mask *[32]C.uchar, domain int) {
     mask[domain / 8 ] |= (1 << (7 - (domain % 8)))
 }
 
+type Target_t = C.target_t
 
 func HsmInit(adapter uint, domain int) C.target_t {
     rc := C.m_init()

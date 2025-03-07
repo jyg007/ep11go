@@ -23,10 +23,10 @@ import "ep11go/ep11"
 func main() { 
       target := ep11.HsmInit(3,19) 
  
-      keyTemplate := []*ep11.Attribute{
-                ep11.NewAttribute(C.CKA_VALUE_LEN,16 ),
-                ep11.NewAttribute(C.CKA_UNWRAP, false),
-                ep11.NewAttribute(C.CKA_ENCRYPT, true),
+      keyTemplate := ep11.Attributes{
+	      C.CKA_VALUE_LEN: 16 ,
+                C.CKA_UNWRAP: false,
+                C.CKA_ENCRYPT: true,
       }
 
 	for i:=0;i<1;i++ {
@@ -38,12 +38,12 @@ func main() {
 	var aeskey ep11.KeyBlob
 	var Cipher,plain []byte
         var err error
-	
+
        	aeskey, _ = ep11.GenerateKey(target,
                 	[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_KEY_GEN, nil)},
 	                keyTemplate)
-		fmt.Println("Generated Key:", hex.EncodeToString(aeskey))
-
+	fmt.Println("Generated Key:", hex.EncodeToString(aeskey))
+	
 	iv:= make([]byte,16)
         hex.Decode(iv,[]byte("3132333435360a"))
 	Cipher,_ = ep11.EncryptSingle(target, 
@@ -67,13 +67,13 @@ func main() {
 
         seed := make([]byte, hex.DecodedLen(len("fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542")))
         hex.Decode(seed, []byte("fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542"))
-        keyTemplate = []*ep11.Attribute{
-                ep11.NewAttribute(C.CKA_VALUE_LEN,16 ),
-                ep11.NewAttribute(C.CKA_UNWRAP, true),
-                ep11.NewAttribute(C.CKA_WRAP, true),
-                ep11.NewAttribute(C.CKA_ENCRYPT, true),
-                ep11.NewAttribute(C.CKA_DECRYPT, true),
-                ep11.NewAttribute(C.CKA_EXTRACTABLE, true),
+        keyTemplate = ep11.Attributes{
+                C.CKA_VALUE_LEN:16 ,
+                C.CKA_UNWRAP: true,
+                C.CKA_WRAP: true,
+                C.CKA_ENCRYPT: true,
+                C.CKA_DECRYPT: true,
+                C.CKA_EXTRACTABLE: true,
          }
        	aeskey, _ = ep11.GenerateKey(target,
                 	[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_KEY_GEN, nil)},
@@ -89,17 +89,17 @@ func main() {
                 panic(fmt.Errorf("Invalid plain secret"))
         }
 
-	unwrapKeyTemplate := []*ep11.Attribute{
-                ep11.NewAttribute(C.CKA_CLASS,C.CKO_SECRET_KEY),
-                ep11.NewAttribute(C.CKA_KEY_TYPE,C.CKK_GENERIC_SECRET),
-                ep11.NewAttribute(C.CKA_VALUE_LEN,secretPlainLen ),
-                ep11.NewAttribute(C.CKA_UNWRAP,false),
-                ep11.NewAttribute(C.CKA_WRAP, false),
-                ep11.NewAttribute(C.CKA_SIGN, true),
-                ep11.NewAttribute(C.CKA_VERIFY, true),
-                ep11.NewAttribute(C.CKA_DERIVE, true),
-                ep11.NewAttribute(C.CKA_IBM_USE_AS_DATA, true),
-                ep11.NewAttribute(C.CKA_EXTRACTABLE, false),
+	unwrapKeyTemplate := ep11.Attributes{
+                C.CKA_CLASS:C.CKO_SECRET_KEY,
+                C.CKA_KEY_TYPE:C.CKK_GENERIC_SECRET,
+                C.CKA_VALUE_LEN:secretPlainLen ,
+                C.CKA_UNWRAP:false,
+                C.CKA_WRAP: false,
+                C.CKA_SIGN: true,
+                C.CKA_VERIFY: true,
+                C.CKA_DERIVE: true,
+                C.CKA_IBM_USE_AS_DATA: true,
+                C.CKA_EXTRACTABLE: false,
          }
         
 
@@ -119,22 +119,21 @@ func main() {
 
 
 	fmt.Printf("\n\n\n")
-	OIDNamedCurveSecp256k1 := asn1.ObjectIdentifier{1, 3, 132, 0, 10}
 
-        ecParameters, err := asn1.Marshal(OIDNamedCurveSecp256k1)
+        ecParameters, err := asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
         if err != nil {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }
 
-	publicKeyECTemplate := []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_VERIFY,true),
+	publicKeyECTemplate := ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_VERIFY:true,
         }
-	privateKeyECTemplate := []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_SIGN,true),
-		    ep11.NewAttribute(C.CKA_PRIVATE,true),
-		    ep11.NewAttribute(C.CKA_SENSITIVE,true),
+	privateKeyECTemplate := ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_SIGN:true,
+		    C.CKA_PRIVATE:true,
+		    C.CKA_SENSITIVE:true,
         }
 
 	var pk, sk ep11.KeyBlob
@@ -155,29 +154,27 @@ func main() {
         
 
 	fmt.Printf("\n\n\n")
-	OIDNamedCurveED25519 :=  asn1.ObjectIdentifier{1, 3, 101, 112}
 
-        ecParameters, err = asn1.Marshal(OIDNamedCurveED25519)
+        ecParameters, err = asn1.Marshal(ep11.OIDNamedCurveED25519)
         if err != nil {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }
 
-	publicKeyECTemplate = []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_VERIFY,true),
+	publicKeyECTemplate = ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_VERIFY:true,
         }
-	privateKeyECTemplate = []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_SIGN,true),
-		    ep11.NewAttribute(C.CKA_PRIVATE,true),
-		    ep11.NewAttribute(C.CKA_SENSITIVE,true),
+	privateKeyECTemplate = ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_SIGN:true,
+		    C.CKA_PRIVATE:true,
+		    C.CKA_SENSITIVE:true,
         }
 
         pk, sk , _= ep11.GenerateKeyPair(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
 
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
 	fmt.Println("\n")
-	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 
 	sig,_ = ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ED25519_SHA512,nil)},sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
@@ -197,20 +194,20 @@ func main() {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }
 
-	publicKeyECTemplate = []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_VERIFY,true), 
-		    ep11.NewAttribute(C.CKA_IBM_USE_AS_DATA, true),
-		    ep11.NewAttribute(C.CKA_KEY_TYPE, C.CKK_EC),
+	publicKeyECTemplate = ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_VERIFY:true, 
+		    C.CKA_IBM_USE_AS_DATA: true,
+		    C.CKA_KEY_TYPE: C.CKK_EC,
 
         }
-	privateKeyECTemplate = []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_SIGN,true),
-		    ep11.NewAttribute(C.CKA_PRIVATE,true),
-		    ep11.NewAttribute(C.CKA_SENSITIVE,true),
-		    ep11.NewAttribute(C.CKA_IBM_USE_AS_DATA,true),
-		    ep11.NewAttribute(C.CKA_KEY_TYPE, C.CKK_EC),
+	privateKeyECTemplate = ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_SIGN:true,
+		    C.CKA_PRIVATE:true,
+		    C.CKA_SENSITIVE:true,
+		    C.CKA_IBM_USE_AS_DATA:true,
+		    C.CKA_KEY_TYPE: C.CKK_EC,
 
         }
 
@@ -229,16 +226,16 @@ func main() {
 	}
 
 
-        ecParameters, _ = asn1.Marshal(OIDNamedCurveSecp256k1)
-	DeriveKeyTemplate := []*ep11.Attribute{
-		    ep11.NewAttribute(C.CKA_EC_PARAMS,ecParameters),
-		    ep11.NewAttribute(C.CKA_VERIFY,true),
-		    ep11.NewAttribute(C.CKA_DERIVE,true),
-		    ep11.NewAttribute(C.CKA_PRIVATE,true),
-		    ep11.NewAttribute(C.CKA_SENSITIVE,true),
-		    ep11.NewAttribute(C.CKA_IBM_USE_AS_DATA,true),
-		    ep11.NewAttribute(C.CKA_KEY_TYPE, C.CKK_ECDSA),
-                    ep11.NewAttribute(C.CKA_VALUE_LEN,0),
+        ecParameters, _ = asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
+	DeriveKeyTemplate := ep11.Attributes{
+		    C.CKA_EC_PARAMS:ecParameters,
+		    C.CKA_VERIFY:true,
+		    C.CKA_DERIVE:true,
+		    C.CKA_PRIVATE:true,
+		    C.CKA_SENSITIVE:true,
+		    C.CKA_IBM_USE_AS_DATA:true,
+		    C.CKA_KEY_TYPE: C.CKK_ECDSA,
+                    C.CKA_VALUE_LEN:0,
 
         }
 
@@ -251,14 +248,15 @@ NewKey, ChainCode, err =  ep11.DeriveKey(target ,
 			masterseed,
 			DeriveKeyTemplate  )  
         
-	fmt.Println("Masterseed:", hex.EncodeToString(NewKey))
+	fmt.Println("\nMasterseed:", hex.EncodeToString(NewKey))
 	fmt.Println("ChainCode:", hex.EncodeToString(ChainCode))
+
 	Params = ep11.BTCDeriveParams{Type: C.CK_IBM_SLIP0010_PRV2PUB, ChildKeyIndex: 0, ChainCode: ChainCode, Version : 1,} 
 k2, ChainCode, err =  ep11.DeriveKey(target , 
 			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params))} , 
 			NewKey,
 			DeriveKeyTemplate  )  
         
-	fmt.Println("Childpub:", hex.EncodeToString(k2))
+	fmt.Println("\nChildpub:", hex.EncodeToString(k2))
 	fmt.Println("ChainCode:", hex.EncodeToString(ChainCode))
 }

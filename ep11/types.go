@@ -215,3 +215,14 @@ func cMechanism(mechList []*Mechanism) (arena, *C.CK_MECHANISM) {
 	return arena, cmech
 }
 
+
+type Attributes map[uint]interface{}
+
+func ConvertToAttributeSlice(attrs Attributes) []*Attribute {
+	var attrSlice []*Attribute
+	for key, value := range attrs {
+		attrSlice = append(attrSlice, NewAttribute(key, value))
+	}
+	return attrSlice
+}
+

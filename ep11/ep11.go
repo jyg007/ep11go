@@ -27,8 +27,8 @@ type KeyBlob []byte
 
 //l##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func GenerateKey(target C.target_t, m []*Mechanism, temp []*Attribute) (KeyBlob, error)  {
-        attrarena, t, tcount := cAttributeList(temp)
+func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, error)  {
+        attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(temp))
         defer attrarena.Free()
         mecharena, mech := cMechanism(m)
         defer mecharena.Free()
@@ -107,10 +107,10 @@ func DecryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, cipher []byte )
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*Attribute)  (KeyBlob, KeyBlob , error) {
-        attrarena1, t1, tcount1 := cAttributeList(pk)
+func GenerateKeyPair(target C.target_t, m []*Mechanism, pk Attributes, sk Attributes)  (KeyBlob, KeyBlob , error) {
+        attrarena1, t1, tcount1 := cAttributeList(ConvertToAttributeSlice(pk))
         defer attrarena1.Free()
-        attrarena2, t2, tcount2 := cAttributeList(sk)
+        attrarena2, t2, tcount2 := cAttributeList(ConvertToAttributeSlice(sk))
         defer attrarena2.Free()
         mecharena, mech := cMechanism(m)
         defer mecharena.Free()
@@ -138,14 +138,21 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk []*Attribute, sk []*A
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr []*Attribute)  (KeyBlob, KeyBlob , error) {
+func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr Attributes)  (KeyBlob, KeyBlob , error) {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
-        attrarena1, t1, tcount1 := cAttributeList(attr)
+        attrarena1, t1, tcount1 := cAttributeList(ConvertToAttributeSlice(attr))
         defer attrarena1.Free()
 
-        baseKeyC := C.CK_BYTE_PTR(unsafe.Pointer(&bk[0]))
-        baseKeyLenC := C.CK_ULONG(len(bk))
+	var baseKeyC C.CK_BYTE_PTR
+	var baseKeyLenC C.CK_ULONG
+	if bk == nil {
+        	baseKeyC =  nil
+		baseKeyLenC = 0
+	} else {
+        	baseKeyC = C.CK_BYTE_PTR(unsafe.Pointer(&bk[0]))
+        	baseKeyLenC = C.CK_ULONG(len(bk))
+	}
 	newKey  :=  make([]byte,MAX_BLOB_SIZE)
         newKeyC := C.CK_BYTE_PTR(unsafe.Pointer(&newKey[0]))
         newKeyLenC := C.CK_ULONG(len(newKey))
@@ -158,8 +165,7 @@ func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr []*Attribute)
         dataC = nil
 	dataLenC := C.CK_ULONG(len(data))
 
-
-        rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,nil,0,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
+	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,nil,0,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
@@ -182,8 +188,15 @@ func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr []*Attribute)
 func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]byte , error) {
 	mecharena, mech := cMechanism(m)
         defer mecharena.Free()
-        privatekeyC := C.CK_BYTE_PTR(unsafe.Pointer(&sk[0]))
-        privatekeyLenC := C.CK_ULONG(len(sk))
+	var privatekeyC C.CK_BYTE_PTR
+	var privatekeyLenC C.CK_ULONG
+	if sk == nil {
+        	privatekeyC =  nil
+		privatekeyLenC = 0
+	} else {
+        	privatekeyC = C.CK_BYTE_PTR(unsafe.Pointer(&sk[0]))
+	        privatekeyLenC = C.CK_ULONG(len(sk))
+	}
 	dataC :=  C.CK_BYTE_PTR(unsafe.Pointer(&data[0]))
         datalenC :=  C.CK_ULONG(len(data))
 	sig := make([]byte,MAX_BLOB_SIZE)
@@ -192,7 +205,8 @@ func SignSingle(target C.target_t, m []*Mechanism, sk KeyBlob, data []byte ) ([]
 
 	rv := C.m_SignSingle(privatekeyC, privatekeyLenC, mech, dataC, datalenC, sigC, &siglenC, target)
     	if rv != C.CKR_OK {
-                  e1 := toError(rv)
+                 e1 := toError(rv)
+		 fmt.Println(e1)
 		return nil,  e1
     	}
         sig = sig[:siglenC]
@@ -237,8 +251,8 @@ func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 
 //l##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlob, temp []*Attribute) (KeyBlob, error)  {
-        attrarena, t, tcount := cAttributeList(temp)
+func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlob, temp Attributes) (KeyBlob, error)  {
+        attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(temp))
         defer attrarena.Free()
         mecharena, mech := cMechanism(m)
         defer mecharena.Free()
@@ -276,3 +290,34 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
 
 
 
+//l##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func WrapKey(target C.target_t, m []*Mechanism, Key KeyBlob, KeK KeyBlob) (KeyBlob, error)  {
+        mecharena, mech := cMechanism(m)
+        defer mecharena.Free()
+
+	WrappedKey  :=  make([]byte,MAX_BLOB_SIZE)
+        wrappedC := C.CK_BYTE_PTR(unsafe.Pointer(&WrappedKey[0]))
+        wrappedLenC := C.CK_ULONG(len(WrappedKey))
+
+        var macKeyC C.CK_BYTE_PTR
+	macKeyC = nil
+	macKeyLenC := C.CK_ULONG(0)
+
+        keyC := C.CK_BYTE_PTR(unsafe.Pointer(&Key[0]))
+        keyLenC := C.CK_ULONG(len(Key))
+
+        keKC := C.CK_BYTE_PTR(unsafe.Pointer(&KeK[0]))
+        keKLenC := C.CK_ULONG(len(KeK))
+
+        rv := C.m_WrapKey(keyC, keyLenC, keKC, keKLenC, macKeyC, macKeyLenC, mech, wrappedC, &wrappedLenC,  target)
+
+        if rv != C.CKR_OK {
+                  e1 := toError(rv)
+		  
+		  return nil, e1
+        }
+	WrappedKey = WrappedKey[:wrappedLenC]
+
+	return WrappedKey, nil
+}

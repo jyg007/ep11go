@@ -19,8 +19,9 @@ static inline void putOAEPParams(CK_RSA_PKCS_OAEP_PARAMS_PTR params, CK_VOID_PTR
 import "C"
 import "unsafe"
 import "encoding/binary" 
+//import "encoding/hex" 
 //import "encoding/asn1" 
-//import "fmt"
+import "fmt"
 
 // GCMParams represents the parameters for the AES-GCM mechanism.
 type GCMParams struct {
@@ -215,7 +216,7 @@ func NewECSGParams( t C.int) []byte {
 
 type BTCDeriveParams struct {
         Type                 int    
-        ChildKeyIndex        int     
+        ChildKeyIndex        uint     
         ChainCode            []byte   
         Version              int      
 }
@@ -227,7 +228,7 @@ func NewBTCDerviceParams( p BTCDeriveParams)  []byte {
 	params = C.CK_IBM_BTC_DERIVE_PARAMS{
 		    _type:          C.CK_ULONG(p.Type),          // ✅ Convert to C.CK_ULONG
     		    childKeyIndex: C.CK_ULONG(p.ChildKeyIndex), // ✅ Convert to C.CK_ULONG
-    		    pChainCode:    (*C.CK_BYTE)(nil), // ✅ Allocate memory for ChainCode
+    		    pChainCode:    (C.CK_BYTE_PTR)(nil), // ✅ Allocate memory for ChainCode
     		    ulChainCodeLen: C.CK_ULONG(0),             // ✅ Convert to C.CK_ULONG
     	 	    version:       C.CK_ULONG(p.Version),       // ✅ Convert to C.CK_ULONG
 }
@@ -243,11 +244,118 @@ func NewBTCDerviceParams( p BTCDeriveParams)  []byte {
 }
 }
 
-// Copy chain code data (if needed)
-if len(p.ChainCode) > 0 {
-    C.memcpy(unsafe.Pointer(params.pChainCode), unsafe.Pointer(&p.ChainCode[0]), C.size_t(len(p.ChainCode)))
-}
-
 // Convert struct to bytes
 return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
 }
+
+
+type  ECAGGParams struct {
+	Version 	uint
+	Mode 		uint
+	PerElementSize 	uint
+	Elements	[]byte
+}
+
+
+func NewECAGGParams( p ECAGGParams) []byte {
+   params := C.XCP_EC_AGGREGATE_PARAMS{
+	    version: 		C.CK_ULONG(p.Version),
+	    mode: 		C.CK_ULONG(p.Mode),
+	    perElementSize: 	C.CK_ULONG(p.PerElementSize),
+	    pElements:  	C.CK_BYTE_PTR(unsafe.Pointer(&p.Elements[0])),
+            ulElementsLen: 	C.CK_ULONG(len(p.Elements)),
+     }
+    return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
+}
+
+
+type  KyberParams struct {
+	Version 	uint
+	Mode 		C.CK_IBM_KEM_MODE
+	Kdf		uint
+	Prepend		bool
+	Cipher		[]byte
+	SharedData	[]byte
+	Blob		[]byte
+}
+
+
+func getBytePtr(b []byte) C.CK_BYTE_PTR {
+    if len(b) == 0 {
+        return nil // Avoid passing a pointer to an empty slice
+    }
+    return (*C.CK_BYTE)(unsafe.Pointer(&b[0]))
+}
+
+
+func boolToCKBBool(b bool) C.CK_BBOOL {
+    if b {
+        return C.CK_BBOOL(1) // True → 1
+    }
+    return C.CK_BBOOL(0) // False → 0
+}
+
+func NewKyberParams(p KyberParams) []byte {
+	params := C.XCP_KYBER_KEM_PARAMS_t{
+        version:         C.CK_ULONG(p.Version),
+        mode:            C.CK_IBM_KEM_MODE(p.Mode),
+        kdf:             C.CK_ULONG(p.Kdf),
+        prepend:        C.CK_BBOOL(boolToCKBBool(p.Prepend)),
+        pCipher:         getBytePtr(p.Cipher),
+        ulCipherLen:     C.CK_ULONG(len(p.Cipher)),
+        pSharedData:     getBytePtr(p.SharedData),
+        ulSharedDataLen: C.CK_ULONG(len(p.SharedData)),
+        pBlob:           getBytePtr(p.Blob),
+        ulBlobLen:       C.CK_ULONG(len(p.Blob)),
+    }
+    return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
+}
+
+
+
+type ETHDeriveParams struct {
+	Version 	uint
+	SigVersion 	uint
+	Type 		uint
+        ChildKeyIndex   uint     
+	KeyInfo		[]byte
+}
+
+func NewETHDeriveParams( p ETHDeriveParams) []byte {
+   var params C.CK_IBM_ETH_DERIVE_PARAMS
+	if len(p.KeyInfo) == 0  {
+   params = C.CK_IBM_ETH_DERIVE_PARAMS{
+	    version: 		C.CK_ULONG(p.Version),
+	    sigVersion: 	C.CK_ULONG(p.SigVersion),
+	    _type:          	C.CK_ULONG(p.Type),          // ✅ Convert to C.CK_ULONG
+ 	    childKeyIndex: 	C.CK_ULONG(p.ChildKeyIndex), // ✅ Convert to C.CK_ULONG
+	    pKeyInfo:  		C.CK_BYTE_PTR(nil),
+            ulKeyInfoLen: 	C.CK_ULONG(0),
+     }
+	} else {
+  		 params = C.CK_IBM_ETH_DERIVE_PARAMS{
+		    version: 		C.CK_ULONG(p.Version),
+		    sigVersion: 	C.CK_ULONG(p.SigVersion),
+		    _type:          	C.CK_ULONG(p.Type),          // ✅ Convert to C.CK_ULONG
+	 	    childKeyIndex: 	C.CK_ULONG(p.ChildKeyIndex), // ✅ Convert to C.CK_ULONG
+		    pKeyInfo:  		C.CK_BYTE_PTR(unsafe.Pointer(&p.KeyInfo[0])),
+	            ulKeyInfoLen: 	C.CK_ULONG(len(p.KeyInfo)),
+     }
+     }
+    if (params.ulKeyInfoLen > C.XCP_EIP2333_KEYINFO_BYTES) {
+	    fmt.Printf("KeyInfo too long")
+	    return nil
+    }
+
+    return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
+}
+/*
+typedef struct CK_IBM_ETH_DERIVE_PARAMS {
+        CK_ULONG version;
+        CK_ULONG sigVersion;
+        CK_ULONG type;
+        CK_ULONG childKeyIndex;
+        CK_BYTE_PTR pKeyInfo;
+        CK_ULONG ulKeyInfoLen;
+} CK_IBM_ETH_DERIVE_PARAMS;
+*/
