@@ -74,7 +74,7 @@ func slip10_deriveKey(deriveType string, childKeyIndex uint, hardened bool, base
 	Params := ep11.BTCDeriveParams{Type:slip10DerivType[deriveType], ChildKeyIndex: childKeyIndex, ChainCode: chainCode, Version : C.XCP_BTC_VERSION,} 
 
 	NewKeyBytes, CheckSum, err :=  ep11.DeriveKey( target , 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params))} , 
+                        ep11.Mech(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params)), 
                         baseKey,
                         DeriveKeyTemplate  )  
 

@@ -40,21 +40,21 @@ func main() {
         var err error
 
        	aeskey, _ = ep11.GenerateKey(target,
-                	[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_KEY_GEN, nil)},
+                	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	fmt.Println("Generated Key:", hex.EncodeToString(aeskey))
 	
 	iv:= make([]byte,16)
         hex.Decode(iv,[]byte("3132333435360a"))
 	Cipher,_ = ep11.EncryptSingle(target, 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			[]byte("hello world hello world hello world"),
 		)
 	fmt.Println("Cipher:", hex.EncodeToString(Cipher))
         
 	plain,err = ep11.DecryptSingle(target, 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			Cipher,
 		)
@@ -76,10 +76,10 @@ func main() {
                 C.CKA_EXTRACTABLE: true,
          }
        	aeskey, _ = ep11.GenerateKey(target,
-                	[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_KEY_GEN, nil)},
+                	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	Cipher,_ = ep11.EncryptSingle(target, 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			seed,
 		)
@@ -105,7 +105,7 @@ func main() {
 
 	var masterseed ep11.KeyBlob
 	masterseed,err = ep11.UnWrapKey(target, 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			Cipher,
 			unwrapKeyTemplate,
@@ -138,16 +138,16 @@ func main() {
 
 	var pk, sk ep11.KeyBlob
 	var  sig []byte
-        pk, sk , _= ep11.GenerateKeyPair(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+        pk, sk , _= ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
 
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
 	fmt.Println("\n")
 	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 
-	sig,_ = ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_ECDSA,nil)},sk,[]byte("helloworld"))
+	sig,_ = ep11.SignSingle(target, ep11.Mech(C.CKM_ECDSA,nil),sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
  
-        err = ep11.VerifySingle( target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_ECDSA,nil)},pk, []byte("helloworld"), sig)
+        err = ep11.VerifySingle( target, ep11.Mech(C.CKM_ECDSA,nil),pk, []byte("helloworld"), sig)
 	if err != nil   {
                         fmt.Println(err)
 	}
@@ -171,15 +171,15 @@ func main() {
 		    C.CKA_SENSITIVE:true,
         }
 
-        pk, sk , _= ep11.GenerateKeyPair(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+        pk, sk , _= ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
 
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
 	fmt.Println("\n")
 
-	sig,_ = ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ED25519_SHA512,nil)},sk,[]byte("helloworld"))
+	sig,_ = ep11.SignSingle(target, ep11.Mech(C.CKM_IBM_ED25519_SHA512,nil),sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
  
-        err = ep11.VerifySingle( target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ED25519_SHA512,nil)},pk, []byte("helloworld"), sig)
+        err = ep11.VerifySingle( target, ep11.Mech(C.CKM_IBM_ED25519_SHA512,nil),pk, []byte("helloworld"), sig)
 	if err != nil   {
                         fmt.Println(err)
 	}
@@ -211,16 +211,16 @@ func main() {
 
         }
 
-        pk, sk , _= ep11.GenerateKeyPair(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_EC_KEY_PAIR_GEN, nil)}, publicKeyECTemplate,privateKeyECTemplate)
+        pk, sk , _= ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
 
 	fmt.Println("Generated Private Key:", hex.EncodeToString(sk))
 	fmt.Println("\n")
 	fmt.Println("Generated public Key:", hex.EncodeToString(pk))
 
-	sig,_ = ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ECDSA_OTHER,ep11.NewECSGParams(C.ECSG_IBM_BLS))},sk,[]byte("helloworld"))
+	sig,_ = ep11.SignSingle(target, ep11.Mech(C.CKM_IBM_ECDSA_OTHER,ep11.NewECSGParams(C.ECSG_IBM_BLS)),sk,[]byte("helloworld"))
 	fmt.Println("Signature: ", hex.EncodeToString(sig))
  
-        err = ep11.VerifySingle( target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ECDSA_OTHER,ep11.NewECSGParams(C.ECSG_IBM_BLS))},pk, []byte("helloworld"), sig)
+        err = ep11.VerifySingle( target, ep11.Mech(C.CKM_IBM_ECDSA_OTHER,ep11.NewECSGParams(C.ECSG_IBM_BLS)),pk, []byte("helloworld"), sig)
 	if err != nil   {
                         fmt.Println(err)
 	}
@@ -244,7 +244,7 @@ func main() {
 
 	var NewKey,k2,ChainCode ep11.KeyBlob
 NewKey, ChainCode, err =  ep11.DeriveKey(target , 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params))} , 
+			ep11.Mech(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params)) , 
 			masterseed,
 			DeriveKeyTemplate  )  
         
@@ -253,7 +253,7 @@ NewKey, ChainCode, err =  ep11.DeriveKey(target ,
 
 	Params = ep11.BTCDeriveParams{Type: C.CK_IBM_SLIP0010_PRV2PUB, ChildKeyIndex: 0, ChainCode: ChainCode, Version : 1,} 
 k2, ChainCode, err =  ep11.DeriveKey(target , 
-			[]*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params))} , 
+			ep11.Mech(C.CKM_IBM_BTC_DERIVE,ep11.NewBTCDerviceParams(Params)) , 
 			NewKey,
 			DeriveKeyTemplate  )  
         

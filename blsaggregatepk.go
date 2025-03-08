@@ -65,7 +65,7 @@ func main() {
 
        var NewKey ep11.KeyBlob
        NewKey, _ , err =  ep11.DeriveKey(target , 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_EC_AGGREGATE,ep11.NewECAGGParams(Params))} , 
+                        ep11.Mech(C.CKM_IBM_EC_AGGREGATE,ep11.NewECAGGParams(Params)) , 
                         nil,
                         publicKeyECTemplate  )  
 

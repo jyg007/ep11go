@@ -138,6 +138,16 @@ func cDate(t time.Time) []byte {
 }
 
 
+func Mech(mechType uint, params []byte) []*Mechanism {
+    return []*Mechanism{
+        {
+            Mechanism: mechType,
+            Parameter: params,
+        },
+    }
+}
+
+
 // Mechanism holds an mechanism type/value combination.
 type Mechanism struct {
 	Mechanism uint

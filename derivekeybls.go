@@ -54,7 +54,7 @@ func eip2333_deriveKey(deriveType uint, childKeyIndex uint, baseKey []byte, keyI
 	Params := ep11.ETHDeriveParams{Type:deriveType, ChildKeyIndex: childKeyIndex, KeyInfo : []byte(""), SigVersion : C.XCP_ETH_SIG_VERSION, Version : C.XCP_ETH_VERSION }
 
 	NewKeyBytes, CheckSum, err :=  ep11.DeriveKey( target , 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_ETH_DERIVE,ep11.NewETHDeriveParams(Params))} , 
+                        ep11.Mech(C.CKM_IBM_ETH_DERIVE,ep11.NewETHDeriveParams(Params)) , 
                         baseKey,
                         DeriveKeyTemplate  )  
 

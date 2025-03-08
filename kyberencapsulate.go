@@ -40,7 +40,7 @@ func main() {
 	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_ENCAPSULATE , Kdf: C.CKD_NULL } 
 	
 	NewKeyBytes, CheckSum, err :=  ep11.DeriveKey( target , 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params))} , 
+                        ep11.Mech(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params)) , 
                         pk,
                         deriveKyberTemplate  )  
 

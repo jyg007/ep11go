@@ -28,7 +28,7 @@ func main() {
         hex.Decode(iv,[]byte(os.Args[3]))
 
 	Plain,_ := ep11.DecryptSingle(target, 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+                        ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         aeskey ,
                         data,
                 )

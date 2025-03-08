@@ -53,14 +53,14 @@ func main() {
                 C.CKA_EXTRACTABLE: true,
          }
 	 aeskey, err := ep11.GenerateKey(target,
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_KEY_GEN, nil)},
+                        ep11.Mech(C.CKM_AES_KEY_GEN, nil),
                         aeskeyTemplate)
 
 	iv := []byte("0123456789abcdef")
 	
         var blobWrapped ep11.KeyBlob
         blobWrapped,err = ep11.WrapKey(target,
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+                        ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         blob ,
                         aeskey,
                 )
@@ -71,13 +71,13 @@ func main() {
 	
        var plain []byte
        plain,err = ep11.DecryptSingle(target, 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+                        ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         aeskey ,
                         blobWrapped,
                 )
         if plain == nil {
                 fmt.Println(err)
         } else {
-                fmt.Println("Decrypted:", hex.EncodeToString(plain))
+                fmt.Print("Decrypted: %x", plain)
         }
 }

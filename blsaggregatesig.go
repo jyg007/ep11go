@@ -47,7 +47,7 @@ func main() {
                Elements:       aggregateSigBytes,
 	} 
 
-	sig,_ := ep11.SignSingle(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_EC_AGGREGATE,ep11.NewECAGGParams(Params))},nil,aggregateSigBytes)
+	sig,_ := ep11.SignSingle(target, ep11.Mech(C.CKM_IBM_EC_AGGREGATE,ep11.NewECAGGParams(Params)),nil,aggregateSigBytes)
         fmt.Println("Signature: ", hex.EncodeToString(sig))
 
 }

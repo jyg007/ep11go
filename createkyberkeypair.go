@@ -44,7 +44,7 @@ func main() {
         }
 
 
-	pk, sk , err  := ep11.GenerateKeyPair(target, []*ep11.Mechanism{ep11.NewMechanism(C.CKM_IBM_KYBER, nil)}, publicKeyTemplate,privateKeyTemplate)
+	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_KYBER, nil), publicKeyTemplate,privateKeyTemplate)
 
         if err != nil   {
                         fmt.Println(err)

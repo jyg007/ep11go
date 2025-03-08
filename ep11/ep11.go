@@ -115,7 +115,7 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk Attributes, sk Attrib
         mecharena, mech := cMechanism(m)
         defer mecharena.Free()
 	
-	privateKey  :=  make([]byte,MAX_BLOB_SIZE)
+	privateKey  :=  make([]byte,3*MAX_BLOB_SIZE)
         privatekeyC := C.CK_BYTE_PTR(unsafe.Pointer(&privateKey[0]))
         privatekeyLenC := C.CK_ULONG(len(privateKey))
 	publicKey  :=  make([]byte,MAX_BLOB_SIZE)

@@ -26,7 +26,7 @@ func main() {
         hex.Decode(iv,[]byte(os.Args[3]))
 
 	Cipher,_ := ep11.EncryptSingle(target, 
-                        []*ep11.Mechanism{ep11.NewMechanism(C.CKM_AES_CBC_PAD, iv)},
+                        ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         aeskey ,
                         []byte(os.Args[1]),
                 )

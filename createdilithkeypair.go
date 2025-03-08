@@ -13,6 +13,7 @@ package main
 */
 import "C"
 import "fmt"
+import "encoding/hex"
 import "encoding/asn1"
 import "ep11go/ep11"
 
@@ -22,36 +23,28 @@ import "ep11go/ep11"
 func main() { 
        target := ep11.HsmInit(3,19) 
  
-       ecParameters, err := asn1.Marshal(ep11.OIDBLS12_381ET)
+       dilithiumStrengthParam, err := asn1.Marshal(ep11.OIDDilithiumR3VHigh) 
 
         if err != nil {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }
 
-	publicKeyECTemplate := ep11.Attributes{
-		    C.CKA_EC_PARAMS:ecParameters,
-		    C.CKA_VERIFY:true, 
-		    C.CKA_DERIVE:true, 
-		    C.CKA_IBM_USE_AS_DATA: true,
-		    C.CKA_KEY_TYPE: C.CKK_EC,
-
+       publicKeyTemplate := ep11.Attributes{
+                C.CKA_IBM_PQC_PARAMS: dilithiumStrengthParam,
+                C.CKA_VERIFY:     true,
         }
-	privateKeyECTemplate := ep11.Attributes{
-		    C.CKA_EC_PARAMS:ecParameters,
-		    C.CKA_SIGN:true,
-		    C.CKA_PRIVATE:true,
-		    C.CKA_SENSITIVE:true,
-		    C.CKA_IBM_USE_AS_DATA:true,
-		    C.CKA_KEY_TYPE: C.CKK_EC,
-
+        privateKeyTemplate := ep11.Attributes{
+                C.CKA_SENSITIVE: true,
+                C.CKA_SIGN:     true,
+                C.CKA_PRIVATE:     true,
         }
 
-	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
+	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_DILITHIUM, nil), publicKeyTemplate,privateKeyTemplate)
 
         if err != nil   {
                         fmt.Println(err)
         } else {
-		fmt.Printf("Private Key:\n%x\n\n", sk)
-		fmt.Printf("\nPublic Key:\n%x\n", pk)
+		fmt.Println("Private Key:", hex.EncodeToString(sk))
+		fmt.Println("\nPublic Key:", hex.EncodeToString(pk))
 	}
 }
