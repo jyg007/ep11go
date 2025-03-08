@@ -155,6 +155,7 @@ type Mechanism struct {
 	generator interface{}
 }
 
+/*
 // NewMechanism returns a pointer to an initialized Mechanism.
 func NewMechanism(mech uint, x interface{}) *Mechanism {
 	m := new(Mechanism)
@@ -178,6 +179,8 @@ func NewMechanism(mech uint, x interface{}) *Mechanism {
 
 	return m
 }
+*/
+
 
 // cAttribute returns the start address and the length of an attribute list.
 func cAttributeList(a []*Attribute) (arena, C.CK_ATTRIBUTE_PTR, C.CK_ULONG) {

@@ -15,15 +15,16 @@ import "C"
 import "fmt"
 import "unsafe"
 
-/*
-const (
-     // Maximum Key Size
-        MAX_BLOB_SIZE = 8192
-        MAX_CSUMSIZE = 64
-	MAX_BLOCK_SIZE = 256 / 8
-)
-*/
 type KeyBlob []byte  
+
+var LoginBlob C.CK_BYTE_PTR = nil
+var LoginBlobLen C.CK_ULONG = 0
+
+
+func SetLoginBlob(id []byte) {
+	LoginBlob = C.CK_BYTE_PTR(unsafe.Pointer(&id[0]))
+	LoginBlobLen = C.CK_ULONG(len(id))
+}
 
 //l##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
@@ -41,7 +42,8 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, e
         checkSumC := C.CK_BYTE_PTR(unsafe.Pointer(&CheckSum[0]))
         checkSumLenC := C.CK_ULONG(len(CheckSum))
 
-        rv := C.m_GenerateKey( mech, t, tcount, nil,0 , keyC, &keyLenC, checkSumC, &checkSumLenC, target )
+
+        rv := C.m_GenerateKey( mech, t, tcount, LoginBlob , LoginBlobLen , keyC, &keyLenC, checkSumC, &checkSumLenC, target )
         if rv != C.CKR_OK {
                   e1 := toError(rv)
 		  
@@ -122,7 +124,7 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk Attributes, sk Attrib
         publickeyC := C.CK_BYTE_PTR(unsafe.Pointer(&publicKey[0]))
         publickeyLenC := C.CK_ULONG(len(publicKey))
         
-	rv := C.m_GenerateKeyPair( mech, t1, tcount1, t2,tcount2,nil,0 , privatekeyC, &privatekeyLenC, publickeyC, &publickeyLenC, target )
+	rv := C.m_GenerateKeyPair( mech, t1, tcount1, t2,tcount2,LoginBlob,LoginBlobLen , privatekeyC, &privatekeyLenC, publickeyC, &publickeyLenC, target )
         if rv != C.CKR_OK {
                   e1 := toError(rv)
 		  return nil,nil, e1
@@ -165,7 +167,8 @@ func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr Attributes)  
         dataC = nil
 	dataLenC := C.CK_ULONG(len(data))
 
-	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,nil,0,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
+	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,LoginBlob,LoginBlobLen,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
+//	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,LoginBlob, LoginBlobLen,dataC,dataLenC,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
@@ -275,7 +278,7 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
         cSumC := C.CK_BYTE_PTR(unsafe.Pointer(&CSum[0]))
         cSumLenC := C.CK_ULONG(len(CSum))
 
-        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, nil, 0, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
+        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, LoginBlob, LoginBlobLen, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)

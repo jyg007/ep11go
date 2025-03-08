@@ -15,7 +15,8 @@ package ep11
 import "C"
 import "fmt"
 import "log"
-
+import "os"
+import "encoding/hex"
 
 // Equivalent function for XCPTGTMASK_SET_DOM
 func XCPTGTMASK_SET_DOM(mask *[32]C.uchar, domain int) {
@@ -43,6 +44,21 @@ func HsmInit(adapter uint, domain int) C.target_t {
     //    module.flags |= C.XCP_MFL_MODULE | C.XCP_MFL_PROBE
     module.flags |= C.XCP_MFL_VIRTUAL | C.XCP_MFL_PROBE | C.XCP_MFL_MODULE
     rc = C.m_add_module(&module, &target)
-    fmt.Printf("Module Initialiation Return Code: %d\n",rc)
+//    fmt.Printf("Module Initialiation Return Code: %d\n",rc)
+
+     hexString := os.Getenv("EP11LOGIN")
+	if hexString != "" {
+	
+
+	// Decode hex string to bytes
+	blob, err := hex.DecodeString(hexString)
+	if err != nil {
+		fmt.Println("Failed to decode ep11 login blob string:", err)
+		return 0
+	}
+
+	// Call SetLoginBlob with the decoded value
+	SetLoginBlob(blob)
+}
     return target
 }
