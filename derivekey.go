@@ -88,7 +88,7 @@ func slip10_deriveKey(deriveType string, childKeyIndex uint, hardened bool, base
 
 func main() {
 
-    target = ep11.HsmInit(3,19) 
+    target = ep11.HsmInit("3.19") 
 	
     ecParameters, _ = asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
 

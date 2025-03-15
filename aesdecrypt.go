@@ -18,7 +18,7 @@ import "encoding/hex"
 import "ep11go/ep11"
 
 func main() { 
-      target := ep11.HsmInit(3,19) 
+      target := ep11.HsmInit("3.19") 
 
         aeskey, _ := hex.DecodeString(os.Args[2])
         data,_ := hex.DecodeString(os.Args[1])

@@ -41,7 +41,7 @@ func main() {
 
 	blob, _  := hex.DecodeString(os.Args[1])
 
-	target := ep11.HsmInit(3,19)
+	target := ep11.HsmInit("3.19")
 
    	// Create an ephemeral AES key
 	aeskeyTemplate := ep11.Attributes{

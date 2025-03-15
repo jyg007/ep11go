@@ -168,7 +168,6 @@ func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr Attributes)  
 	dataLenC := C.CK_ULONG(len(data))
 
 	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,LoginBlob,LoginBlobLen,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
-//	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,LoginBlob, LoginBlobLen,dataC,dataLenC,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)

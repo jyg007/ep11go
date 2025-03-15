@@ -23,7 +23,7 @@ import "os"
 
 
 func main() { 
-       target := ep11.HsmInit(3,19) 
+       target := ep11.HsmInit("3.19") 
  
        ecParameters, err := asn1.Marshal(ep11.OIDBLS12_381ET)
         // Create an empty slice to hold the final concatenated byte array

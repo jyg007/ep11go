@@ -19,7 +19,7 @@ import  "crypto/sha256"
 import "os"
 
 func main() { 
-       target := ep11.HsmInit(3,19) 
+       target := ep11.HsmInit("3.19") 
 
     pk := make([]byte, hex.DecodedLen(len(os.Args[3])))
     hex.Decode(pk, []byte(os.Args[3]))

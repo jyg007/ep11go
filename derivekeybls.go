@@ -68,7 +68,7 @@ func eip2333_deriveKey(deriveType uint, childKeyIndex uint, baseKey []byte, keyI
 
 func main() {
 
-    target = ep11.HsmInit(3,19) 
+    target = ep11.HsmInit("3.19") 
 	
     ecParameters, _ = asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
 
