@@ -15,10 +15,23 @@ import "C"
 import "fmt"
 import "ep11go/ep11"
 import "time"
+import "os"
+import "strconv"
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
+      	// Get number of keys from command-line arguments
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: program <numKeys>")
+		return
+	}
+
+	numKeys, err := strconv.Atoi(os.Args[1])
+	if err != nil || numKeys <= 0 {
+		fmt.Println("Invalid number of keys. Please provide a positive integer.")
+		return
+	}
       target := ep11.HsmInitNonVirtual("3.19") 
       
       keyTemplate := ep11.Attributes{
@@ -26,8 +39,9 @@ func main() {
                 C.CKA_UNWRAP: false,
                 C.CKA_ENCRYPT: true,
       } 
-        const numKeys = 100000
-        var aeskeys []ep11.KeyBlob
+
+        
+	var aeskeys []ep11.KeyBlob
         aeskeys = make([]ep11.KeyBlob, numKeys)
         
         startTime := time.Now()
@@ -43,10 +57,11 @@ func main() {
 
         // Measure the time to reencipher the keys
         startTime = time.Now()
-
+//	var k ep11.KeyBlob
         // Reencipher all 100000 keys
         for i := 0; i < numKeys; i++ {
                 _, _ = ep11.Reencipher(target, aeskeys[i])
+//		fmt.Printf("%x",k)
         }
 
         // Time taken for reenciphering
