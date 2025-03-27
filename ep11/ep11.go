@@ -14,6 +14,8 @@ package ep11
 import "C"
 import "fmt"
 import "unsafe"
+import "errors"
+import "strings"
 
 type KeyBlob []byte  
 
@@ -26,7 +28,36 @@ func SetLoginBlob(id []byte) {
 	LoginBlobLen = C.CK_ULONG(len(id))
 }
 
-//l##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func GetMechanismList(target C.target_t) ( string, error)  {
+
+	var counter C.CK_ULONG
+
+        rv := C.m_GetMechanismList((C.CK_SLOT_ID)(0), nil, (C.CK_ULONG_PTR)(unsafe.Pointer(&counter)), target)
+        if rv != C.CKR_OK {
+                return  "", toError(rv)
+        }       
+	mlist := (*C.CK_MECHANISM_TYPE)(C.malloc(counter * C.size_t(unsafe.Sizeof(C.CK_MECHANISM_TYPE(0)))))
+	if mlist == nil {
+		return "",errors.New("Memory allocaiton failed")
+	}
+	defer C.free(unsafe.Pointer(mlist))
+        rv = C.m_GetMechanismList((C.CK_SLOT_ID)(0), mlist, (C.CK_ULONG_PTR)(unsafe.Pointer(&counter)), target)
+        if rv != C.CKR_OK {
+                return  "", toError(rv)
+        }
+	// Convert C pointer to a Go slice
+	mechanisms := (*[1 << 30]C.CK_MECHANISM_TYPE)(unsafe.Pointer(mlist))[:counter:counter]
+
+	var result strings.Builder
+	for _, mech := range mechanisms {
+		result.WriteString( MechToName[MechanismValue(mech)]+" ")
+	}
+	return strings.TrimSpace(result.String()) , nil
+}
+
+//##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, error)  {
         attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(temp))
