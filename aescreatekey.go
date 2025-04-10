@@ -16,7 +16,7 @@ func main() {
       target := ep11.HsmInit("3.19") 
  
       keyTemplate := ep11.Attributes{
-	      C.CKA_VALUE_LEN: 16 ,
+	      C.CKA_VALUE_LEN: 32 ,
 		C.CKA_UNWRAP: false,
 		C.CKA_ENCRYPT: true,
       }
@@ -26,5 +26,6 @@ func main() {
        	aeskey, _ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
+
 	fmt.Printf("Generated Key: %x\n", aeskey)
 }

@@ -114,11 +114,11 @@ func EncryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, data []byte ) (
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func DecryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, cipher []byte ) ([]byte, error) {
-	mecharena, mech := cMechanism(m)
+	      mecharena, mech := cMechanism(m)
         defer mecharena.Free()
         keyC := C.CK_BYTE_PTR(unsafe.Pointer(&k[0]))
         keyLenC := C.CK_ULONG(len(k))
-	cipherC :=  C.CK_BYTE_PTR(unsafe.Pointer(&cipher[0]))
+	      cipherC :=  C.CK_BYTE_PTR(unsafe.Pointer(&cipher[0]))
         cipherlenC :=  C.CK_ULONG(len(cipher))
 
         plainLen := cipherlenC + MAX_BLOCK_SIZE
@@ -126,15 +126,43 @@ func DecryptSingle(target C.target_t, m []*Mechanism, k KeyBlob, cipher []byte )
         plain := make([]byte, plainLen)
         plainC := (C.CK_BYTE_PTR)(unsafe.Pointer(&plain[0]))
 
-	rv := C.m_DecryptSingle(keyC, keyLenC, mech, cipherC, cipherlenC, plainC, &plainlenC, target)
+			rv := C.m_DecryptSingle(keyC, keyLenC, mech, cipherC, cipherlenC, plainC, &plainlenC, target)
     	if rv != C.CKR_OK {
-                  e1 := toError(rv)
-	 //   fmt.Printf("zeeue",e1)
-		return nil,  e1
+        e1 := toError(rv)
+				return nil,  e1
     	}
-        plain = plain[:plainlenC]
-	return plain,nil
-	//fmt.Println("Cipher:", hex.EncodeToString(cipher))
+		  plain = plain[:plainlenC]
+			return plain,nil
+}
+
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func ReencryptSingle(target C.target_t, m_dec []*Mechanism, m_enc []*Mechanism, key_dec KeyBlob, key_enc KeyBlob, cipher_in []byte) ([]byte, error) {
+			  mecharena_dec, mech_dec := cMechanism(m_dec)
+        defer mecharena_dec.Free()
+        key_decC := C.CK_BYTE_PTR(unsafe.Pointer(&key_dec[0]))
+        key_decLenC := C.CK_ULONG(len(key_dec))
+
+	      cipher_inC :=  C.CK_BYTE_PTR(unsafe.Pointer(&cipher_in[0]))
+        cipher_inlenC :=  C.CK_ULONG(len(cipher_in))
+
+        mecharena_enc, mech_enc := cMechanism(m_enc)
+        defer mecharena_enc.Free()
+        key_encC := C.CK_BYTE_PTR(unsafe.Pointer(&key_enc[0]))
+        key_encLenC := C.CK_ULONG(len(key_enc))
+
+ 	      cipherLen :=  MAX_BLOCK_SIZE
+        cipher := make([]byte, cipherLen)
+        cipherLenC := (C.CK_ULONG)(cipherLen)
+        cipherC := (C.CK_BYTE_PTR)(unsafe.Pointer(&cipher[0]))
+	
+ 				rv := C.m_ReencryptSingle(key_decC, key_decLenC, key_encC, key_encLenC, mech_dec,mech_enc, cipher_inC, cipher_inlenC, cipherC, &cipherLenC, target)
+	    	if rv != C.CKR_OK {
+	         e1 := toError(rv)
+					return nil,  e1
+	    	}
+	    	cipher = cipher[:cipherLenC]  
+	    	return cipher, nil      
 }
 
 //##########################################################################################################################################################################################
