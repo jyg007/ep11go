@@ -61,8 +61,8 @@ func main() {
         var blobWrapped ep11.KeyBlob
         blobWrapped,err = ep11.WrapKey(target,
                         ep11.Mech(C.CKM_AES_CBC_PAD, iv),
-                        blob ,
                         aeskey,
+                        blob,
                 )
 
 	if err != nil {
