@@ -356,19 +356,19 @@ func WrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, Key KeyBlob ) (KeyB
   mecharena, mech := cMechanism(m)
   defer mecharena.Free()
 
-	WrappedKey  :=  make([]byte,MAX_BLOB_SIZE)
-  appedC := C.CK_BYTE_PTR(unsafe.Pointer(&WrappedKey[0]))
+  WrappedKey  :=  make([]byte,MAX_BLOB_SIZE)
+  wrappedC := C.CK_BYTE_PTR(unsafe.Pointer(&WrappedKey[0]))
   wrappedLenC := C.CK_ULONG(len(WrappedKey))
 
-  var macKeyC C.CK_BYTE_PTR
-	macKeyC = nil
-	macKeyLenC := C.CK_ULONG(0)
+  keKC := C.CK_BYTE_PTR(unsafe.Pointer(&KeK[0]))
+  keKLenC := C.CK_ULONG(len(KeK))
 
   keyC := C.CK_BYTE_PTR(unsafe.Pointer(&Key[0]))
   keyLenC := C.CK_ULONG(len(Key))
 
-  keKC := C.CK_BYTE_PTR(unsafe.Pointer(&KeK[0]))
-  keKLenC := C.CK_ULONG(len(KeK))
+  var macKeyC C.CK_BYTE_PTR
+  macKeyC = nil
+  macKeyLenC := C.CK_ULONG(0)
 
   rv := C.m_WrapKey(keyC, keyLenC, keKC, keKLenC,  macKeyC, macKeyLenC, mech, wrappedC, &wrappedLenC,  target)
 
@@ -376,7 +376,7 @@ func WrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, Key KeyBlob ) (KeyB
       e1 := toError(rv)
 			return nil, e1
   }
-	WrappedKey = WrappedKey[:wrappedLenC]
+  WrappedKey = WrappedKey[:wrappedLenC]
 
-	return WrappedKey, nil
+  return WrappedKey, nil
 }

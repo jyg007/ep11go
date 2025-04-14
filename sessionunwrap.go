@@ -79,6 +79,6 @@ func main() {
 	if err != nil {
                         fmt.Println(err)
 	} else {
-	        fmt.Println("\nSeed Blob:", hex.EncodeToString(masterseed))
+	        fmt.Println("\n Blob:", hex.EncodeToString(masterseed))
 	}
 }

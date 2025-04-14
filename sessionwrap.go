@@ -68,8 +68,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("Wrap key error: %s", err))
 	}
-	
                 
-       fmt.Print("Blobwrapped: %x", blobWrapped)
-       fmt.Print("Ciphering Key: %x",aeskey)
+       fmt.Printf("Blobwrapped: %x\n", blobWrapped)
+       fmt.Printf("Kek: %x",aeskey)
 }
