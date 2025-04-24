@@ -1,4 +1,4 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh
+all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go
 
@@ -85,5 +85,12 @@ uncipherblob: uncipherblob.go $(deps)
 
 kyberencapsulate: kyberencapsulate.go $(deps)
 	go build  kyberencapsulate.go
+
 kyberdecapsulate: kyberdecapsulate.go $(deps)
 	go build  kyberdecapsulate.go
+
+kyberencapsulatehybrid: kyberencapsulatehybrid.go $(deps)
+	go build  kyberencapsulatehybrid.go
+
+kyberdecapsulatehybrid: kyberdecapsulatehybrid.go $(deps)
+	go build  kyberdecapsulatehybrid.go
