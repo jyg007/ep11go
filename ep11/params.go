@@ -148,24 +148,38 @@ func cOAEPParams(p *OAEPParams, arena arena) ([]byte, arena) {
 	}
 	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params)), arena
 }
-/*
+
 
 // ECDH1DeriveParams can be passed to NewMechanism to implement CK_ECDH1_DERIVE_PARAMS.
 type ECDH1DeriveParams struct {
 	KDF           uint
 	SharedData    []byte
-	PublicKeyData []byte
+	PublicData []byte
 }
 
 // NewECDH1DeriveParams creates a CK_ECDH1_DERIVE_PARAMS structure suitable for use with the CKM_ECDH1_DERIVE mechanism.
-func NewECDH1DeriveParams(kdf uint, sharedData []byte, publicKeyData []byte) *ECDH1DeriveParams {
-	return &ECDH1DeriveParams{
-		KDF:           kdf,
-		SharedData:    sharedData,
-		PublicKeyData: publicKeyData,
+func NewECDH1DeriveParams(p ECDH1DeriveParams) []byte {
+	var params C.CK_ECDH1_DERIVE_PARAMS
+	if len(p.SharedData) == 0  {
+		params = C.CK_ECDH1_DERIVE_PARAMS{
+			kdf :  C.CK_EC_KDF_TYPE(p.KDF),
+			ulSharedDataLen: C.CK_ULONG(0),
+			pSharedData: C.CK_BYTE_PTR(nil),
+			ulPublicDataLen: C.CK_ULONG(len(p.PublicData)),
+			pPublicData: C.CK_BYTE_PTR(unsafe.Pointer(&p.PublicData[0])),
+		}
+	} else {
+		params = C.CK_ECDH1_DERIVE_PARAMS{
+			kdf :  C.CK_EC_KDF_TYPE(p.KDF),
+			ulSharedDataLen: C.CK_ULONG(len(p.SharedData)),
+			pSharedData:  C.CK_BYTE_PTR(unsafe.Pointer(&p.SharedData[0])),
+			ulPublicDataLen: C.CK_ULONG(len(p.PublicData)),
+			pPublicData: C.CK_BYTE_PTR(unsafe.Pointer(&p.PublicData[0])),
+		}
 	}
+        return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
 }
-
+/*
 func cECDH1DeriveParams(p *ECDH1DeriveParams, arena arena) ([]byte, arena) {
 	params := C.CK_ECDH1_DERIVE_PARAMS{
 		kdf: C.CK_EC_KDF_TYPE(p.KDF),
@@ -183,6 +197,7 @@ func cECDH1DeriveParams(p *ECDH1DeriveParams, arena arena) ([]byte, arena) {
 	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params)), arena
 }
 
+/*
 type RSAAESKeyWrapParams struct {
 	AESKeyBits uint
 	OAEPParams OAEPParams
@@ -220,7 +235,6 @@ type BTCDeriveParams struct {
         ChainCode            []byte   
         Version              int      
 }
-
 
 func NewBTCDerviceParams( p BTCDeriveParams)  []byte {
 	var params C.CK_IBM_BTC_DERIVE_PARAMS
