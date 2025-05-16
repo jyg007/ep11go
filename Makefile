@@ -1,4 +1,4 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid
+all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go
 
@@ -28,6 +28,8 @@ eccreatekeypair: eccreatekeypair.go
 ecdh: ecdh.go
 	go build $^
 
+readattr: readattr.go
+	go build $^
 aescreatekeysession: aescreatekeysession.go
 	go build $^
 
@@ -94,3 +96,6 @@ kyberencapsulatehybrid: kyberencapsulatehybrid.go $(deps)
 
 kyberdecapsulatehybrid: kyberdecapsulatehybrid.go $(deps)
 	go build  kyberdecapsulatehybrid.go
+
+benchmark4: benchmark4.go $(deps)
+	go build  benchmark4.go

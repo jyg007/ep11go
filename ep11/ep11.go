@@ -350,7 +350,7 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
 
 
 
-//l##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func WrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, Key KeyBlob ) (KeyBlob, error)  {
   mecharena, mech := cMechanism(m)
@@ -380,3 +380,52 @@ func WrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, Key KeyBlob ) (KeyB
 
   return WrappedKey, nil
 }
+
+func isPrintable(b []byte) bool {
+    for _, c := range b {
+        if c < 32 || c > 126 {
+            return false
+        }
+    }
+    return true
+}
+
+
+
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func GetAttributeValue(target C.target_t,  Key KeyBlob, attrs Attributes ) (map[C.CK_ATTRIBUTE_TYPE]interface{}, error)  {
+     attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(attrs))
+     defer attrarena.Free()
+
+     KeyC := (*C.uchar)(unsafe.Pointer(&Key[0]))
+     KeyLenC := (C.size_t)(len(Key))
+
+     // Need this for the passthrough case
+     rv := C.m_GetAttributeValue(KeyC, KeyLenC, t, tcount, target)
+
+
+
+     if rv != C.CKR_OK {
+                return nil,toError(rv)
+     }
+
+    // Create result map
+    result := make(map[C.CK_ATTRIBUTE_TYPE]interface{})
+
+    for i := 0; i < int(tcount); i++ {
+        attr := (*C.CK_ATTRIBUTE)(unsafe.Pointer(uintptr(unsafe.Pointer(t)) + uintptr(i)*unsafe.Sizeof(*t)))
+        attrType := attr._type // or attr.type_, depending on binding
+
+        if attr.pValue == nil || attr.ulValueLen == 0 {
+            result[attrType] = nil
+            continue
+        }
+
+        // Convert the C value to a Go []byte
+        value := C.GoBytes(unsafe.Pointer(attr.pValue), C.int(attr.ulValueLen))
+        result[attrType] = value
+    }
+
+    return result, nil
+}	
