@@ -29,7 +29,7 @@ func start(c chan int) {
 
          target := ep11.HsmInit("3.19") 
 	 ecParameters, err := asn1.Marshal(ep11.OIDNamedCurveED25519)
-//       ecParameters, err := asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
+       //ecParameters, err := asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
         if err != nil {
                panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
         }

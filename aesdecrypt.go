@@ -15,17 +15,20 @@ import "ep11go/ep11"
 func main() { 
       target := ep11.HsmInit("3.19") 
 
-        aeskey, _ := hex.DecodeString(os.Args[2])
-        data,_ := hex.DecodeString(os.Args[1])
+        aeskey, _ := hex.DecodeString(os.Args[1])
+        data,_ := hex.DecodeString(os.Args[2])
 
-
-        iv:= make([]byte,16)
-        hex.Decode(iv,[]byte(os.Args[3]))
+	 if len(data) < 16 {
+        	fmt.Fprintln(os.Stderr, "Error: ciphertext too short to contain IV")
+	        os.Exit(1)
+    	}
+	iv := data[:16]
+    	ciphertext := data[16:]
 
 	Plain,_ := ep11.DecryptSingle(target, 
                         ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         aeskey ,
-                        data,
+                        ciphertext,
                 )
         fmt.Printf("\nPlain text:\n%s\n", Plain)
 }

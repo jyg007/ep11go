@@ -15,15 +15,16 @@ import "ep11go/ep11"
 func main() { 
       target := ep11.HsmInit("3.19") 
 
-        aeskey, _ := hex.DecodeString(os.Args[2])
+        aeskey, _ := hex.DecodeString(os.Args[1])
 
-        iv:= make([]byte,16)
-        hex.Decode(iv,[]byte(os.Args[3]))
+	iv, _ :=ep11.GenerateRandom(target,16 )
 
 	Cipher,_ := ep11.EncryptSingle(target, 
                         ep11.Mech(C.CKM_AES_CBC_PAD, iv),
                         aeskey ,
-                        []byte(os.Args[1]),
+                        []byte(os.Args[2]),
                 )
-        fmt.Printf("\nCipher:\n%x\n", Cipher)
+
+        encryptedWithIV := append(iv, Cipher...)
+        fmt.Printf("\nCipher:\n%x\n", encryptedWithIV)
 }
