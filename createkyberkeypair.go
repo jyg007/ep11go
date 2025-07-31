@@ -44,7 +44,7 @@ func main() {
         if err != nil   {
                         fmt.Println(err)
         } else {
-		fmt.Println("Private Key:", hex.EncodeToString(sk))
-		fmt.Println("\nPublic Key:", hex.EncodeToString(pk))
+		fmt.Println("Private Key [descapsulation key] cryptogram:", hex.EncodeToString(sk))
+		fmt.Println("\nPublic Key [encapsulation key]:", hex.EncodeToString(pk))
 	}
 }

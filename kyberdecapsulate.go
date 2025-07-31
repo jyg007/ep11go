@@ -25,10 +25,10 @@ func main() {
     target = ep11.HsmInit("3.19") 
 
     sk, _ := hex.DecodeString(os.Args[1])
-    checksum , err := hex.DecodeString(os.Args[2])
+    cipheredtext , err := hex.DecodeString(os.Args[2])
 
      if err != nil {
-                panic(fmt.Errorf("Hexa decoding error for checksum : %s", err))
+                panic(fmt.Errorf("Hexa decoding error for cipheredtext : %s", err))
         }
 
 
@@ -38,7 +38,7 @@ func main() {
                 C.CKA_VALUE_LEN: 256 / 8,
         }
 
-	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_DECAPSULATE , Kdf: C.CKD_NULL ,Cipher: checksum} 
+	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_DECAPSULATE , Kdf: C.CKD_NULL ,Cipher: cipheredtext} 
 	
 	NewKeyBytes, _, err :=  ep11.DeriveKey( target , 
                         ep11.Mech(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params)), 
@@ -50,6 +50,5 @@ func main() {
 	}
 
         fmt.Printf("Derived AES key: %x\n\n",NewKeyBytes)
-     //   fmt.Printf("Checksum: %x\n\n",CheckSum[cipherTextOffset:])
 	
   }

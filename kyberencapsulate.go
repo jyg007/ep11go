@@ -34,7 +34,7 @@ func main() {
 
 	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_ENCAPSULATE , Kdf: C.CKD_NULL } 
 	
-	NewKeyBytes, CheckSum, err :=  ep11.DeriveKey( target , 
+	NewKeyBytes, GeneratedCipheredText, err :=  ep11.DeriveKey( target , 
                         ep11.Mech(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params)) , 
                         pk,
                         deriveKyberTemplate  )  
@@ -43,7 +43,7 @@ func main() {
 		panic(fmt.Errorf("Derived Child Key request error: %s", err))
 	}
 
-        fmt.Printf("Derived AES key: %x\n\n",NewKeyBytes)
-        fmt.Printf("Checksum: %x\n\n",CheckSum[cipherTextOffset:])
+        fmt.Printf("AES key: cryptogram %x\n\n",NewKeyBytes)
+        fmt.Printf("Ciphered Text for decapsulation %x\n\n",GeneratedCipheredText[cipherTextOffset:])
 	
   }
