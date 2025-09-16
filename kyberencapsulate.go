@@ -8,6 +8,7 @@ package main
 */
 import "C"
 import "fmt"
+import "unsafe"
 import "encoding/hex"
 import "ep11go/ep11"
 import "os"
@@ -33,7 +34,11 @@ func main() {
         }
 
 	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_ENCAPSULATE , Kdf: C.CKD_NULL } 
-	
+	fmt.Printf("Params struct: %+v\n", Params) 
+	   b := C.GoBytes(unsafe.Pointer(&Params), C.int(unsafe.Sizeof(Params)))
+
+    // Print as hex
+    fmt.Printf("Params as byte array: % x\n", b)
 	NewKeyBytes, GeneratedCipheredText, err :=  ep11.DeriveKey( target , 
                         ep11.Mech(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params)) , 
                         pk,
