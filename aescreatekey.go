@@ -19,6 +19,7 @@ func main() {
 	      C.CKA_VALUE_LEN: 32 ,
 		C.CKA_UNWRAP: false,
 		C.CKA_ENCRYPT: true,
+                C.CKA_EXTRACTABLE: true,
       }
 
 	var aeskey ep11.KeyBlob

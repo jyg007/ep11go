@@ -117,6 +117,8 @@ func NewPSSParams(hashAlg, mgf, saltLength uint) []byte {
 	return memBytes(unsafe.Pointer(&p), unsafe.Sizeof(p))
 }
 
+
+
 // OAEPParams can be passed to NewMechanism to implement CKM_RSA_PKCS_OAEP.
 type OAEPParams struct {
 	HashAlg    uint
@@ -126,13 +128,26 @@ type OAEPParams struct {
 }
 
 // NewOAEPParams creates a CK_RSA_PKCS_OAEP_PARAMS structure suitable for use with the CKM_RSA_PKCS_OAEP mechanism.
-func NewOAEPParams(hashAlg, mgf, sourceType uint, sourceData []byte) *OAEPParams {
-	return &OAEPParams{
-		HashAlg:    hashAlg,
-		MGF:        mgf,
-		SourceType: sourceType,
-		SourceData: sourceData,
+func NewOAEPParams(hashAlg uint, mgf uint, sourceType uint, sourceData []byte) []byte {
+        var params C.CK_RSA_PKCS_OAEP_PARAMS
+	if len(sourceData) == 0  {
+	        params  = C.CK_RSA_PKCS_OAEP_PARAMS{
+			hashAlg:    C.CK_MECHANISM_TYPE(hashAlg),
+			mgf:        C.CK_RSA_PKCS_MGF_TYPE(mgf),
+			source:     C.CK_RSA_PKCS_OAEP_SOURCE_TYPE(sourceType),
+			pSourceData:   C.CK_VOID_PTR(nil),
+			ulSourceDataLen:  C.CK_ULONG(0),
+		} 
+	} else {
+        	params  = C.CK_RSA_PKCS_OAEP_PARAMS{
+			hashAlg:    C.CK_MECHANISM_TYPE(hashAlg),
+			mgf:        C.CK_RSA_PKCS_MGF_TYPE(mgf),
+			source:     C.CK_RSA_PKCS_OAEP_SOURCE_TYPE(sourceType),
+			pSourceData:   C.CK_VOID_PTR(unsafe.Pointer(&sourceData[0])),
+			ulSourceDataLen:  C.CK_ULONG(len(sourceData)),
+		}
 	}
+       return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
 }
 
 func cOAEPParams(p *OAEPParams, arena arena) ([]byte, arena) {
