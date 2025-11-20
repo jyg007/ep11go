@@ -17,9 +17,10 @@ func main() {
  
       keyTemplate := ep11.Attributes{
 	      C.CKA_VALUE_LEN: 32 ,
-		C.CKA_UNWRAP: false,
+		C.CKA_UNWRAP: true,
+		C.CKA_WRAP: true,
 		C.CKA_ENCRYPT: true,
-                C.CKA_EXTRACTABLE: true,
+                C.CKA_EXTRACTABLE: false,
       }
 
 	var aeskey ep11.KeyBlob

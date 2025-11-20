@@ -318,7 +318,7 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
         defer mecharena.Free()
 
 	UnWrappedKey  :=  make([]byte,MAX_BLOB_SIZE)
-        CSum:= make([]byte,MAX_CSUMSIZE )
+        CSum:= make([]byte, 2*MAX_CSUMSIZE )
 
         var macKeyC C.CK_BYTE_PTR
 	macKeyC = nil
@@ -339,7 +339,6 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
-		  
 		  return nil, e1
         }
 	UnWrappedKey = UnWrappedKey[:unwrappedLenC]
