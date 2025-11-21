@@ -41,7 +41,7 @@ func main() {
          }
         iv := []byte("0123456789abcdef")
 
-	 aeskey, _ = ep11.GenerateKey(target,
+	 aeskey, _,_ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	Cipher,_ = ep11.EncryptSingle(target, 
@@ -64,7 +64,8 @@ func main() {
         
 
 	var masterseed ep11.KeyBlob
-	masterseed,err = ep11.UnWrapKey(target, 
+	var csum []byte
+	masterseed,csum, err = ep11.UnWrapKey(target, 
 			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			Cipher,
@@ -75,5 +76,6 @@ func main() {
                         fmt.Println(err)
 	} else {
 	        fmt.Println("\nSeed Blob:", hex.EncodeToString(masterseed))
+	        fmt.Println("\nCsum :", hex.EncodeToString(csum))
 	}
 }

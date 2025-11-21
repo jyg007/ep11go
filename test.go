@@ -34,7 +34,7 @@ func main() {
 	var Cipher,plain []byte
         var err error
 
-       	aeskey, _ = ep11.GenerateKey(target,
+       	aeskey, _, _ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	fmt.Println("Generated Key:", hex.EncodeToString(aeskey))
@@ -70,7 +70,7 @@ func main() {
                 C.CKA_DECRYPT: true,
                 C.CKA_EXTRACTABLE: true,
          }
-       	aeskey, _ = ep11.GenerateKey(target,
+       	aeskey,_,  _ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	Cipher,_ = ep11.EncryptSingle(target, 
@@ -99,7 +99,7 @@ func main() {
         
 
 	var masterseed ep11.KeyBlob
-	masterseed,err = ep11.UnWrapKey(target, 
+	masterseed, _ , err = ep11.UnWrapKey(target, 
 			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			Cipher,

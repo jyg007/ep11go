@@ -196,6 +196,7 @@ func cAttributeList(a []*Attribute) (arena, C.CK_ATTRIBUTE_PTR, C.CK_ULONG) {
 			// field is unaligned on windows so this has to call into C
 			C.putAttributePval(&pa[i], buf)
 			pa[i].ulValueLen = len
+			//fmt.Println(len)
 		}
 	}
 	return arena, &pa[0], C.CK_ULONG(len(a))

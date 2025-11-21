@@ -46,23 +46,10 @@ func main() {
                     C.CKA_CLASS: C.CKO_PRIVATE_KEY,
                     C.CKA_EXTRACTABLE: false,
         }
-/*
-privateKeyECTemplate := ep11.Attributes{
-    C.CKA_EC_PARAMS:   ecParameters,   // required
-
-    // Required key-lifecycle attributes for unwrap
-    C.CKA_TOKEN:       trueVal,
-    C.CKA_PRIVATE:     trueVal,
-    C.CKA_SENSITIVE:   trueVal,
-    C.CKA_EXTRACTABLE: falseVal,
-
-    // Optional but recommended for EC
-    C.CKA_SIGN:        trueVal,
-    C.CKA_DERIVE:      trueVal,
-}
-*/
-        var eckey ep11.KeyBlob
-	eckey,err = ep11.UnWrapKey(target, 
+        
+	var eckey ep11.KeyBlob
+	var csum []byte
+	eckey,csum,err = ep11.UnWrapKey(target, 
 			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			ciphertext,
@@ -73,5 +60,6 @@ privateKeyECTemplate := ep11.Attributes{
                 fmt.Println(err)
 	} else {
 	        fmt.Println("\nECKey Blob :", hex.EncodeToString(eckey))
+	        fmt.Println("\nChecksum :", hex.EncodeToString(csum))
 	}
 }

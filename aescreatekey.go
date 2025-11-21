@@ -20,14 +20,16 @@ func main() {
 		C.CKA_UNWRAP: true,
 		C.CKA_WRAP: true,
 		C.CKA_ENCRYPT: true,
-                C.CKA_EXTRACTABLE: false,
+                C.CKA_EXTRACTABLE: true,
       }
 
 	var aeskey ep11.KeyBlob
+	var csum []byte
 
-       	aeskey, _ = ep11.GenerateKey(target,
+       	aeskey, csum ,_ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 
 	fmt.Printf("Generated Key: %x\n", aeskey)
+	fmt.Printf("Csum: %x\n", csum)
 }

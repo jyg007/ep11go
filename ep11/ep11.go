@@ -15,6 +15,7 @@ import "fmt"
 import "unsafe"
 import "errors"
 import "strings"
+//import "encoding/hex"
 
 type KeyBlob []byte  
 
@@ -58,7 +59,7 @@ func GetMechanismList(target C.target_t) ( string, error)  {
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, error)  {
+func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, []byte, error)  {
         attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(temp))
         defer attrarena.Free()
         mecharena, mech := cMechanism(m)
@@ -77,12 +78,12 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, e
         if rv != C.CKR_OK {
                   e1 := toError(rv)
 		  
-		  return nil, e1
+		  return nil, nil, e1
         }
 	Key = Key[:keyLenC]
 	CheckSum = CheckSum[:checkSumLenC]
 
-	return Key, nil
+	return Key, CheckSum, nil
 }
 
 //##########################################################################################################################################################################################
@@ -311,14 +312,14 @@ func GenerateRandom(target C.target_t, length int) (KeyBlob, error)  {
 
 //l##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
-func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlob, temp Attributes) (KeyBlob, error)  {
+func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlob, temp Attributes) (KeyBlob, []byte, error)  {
         attrarena, t, tcount := cAttributeList(ConvertToAttributeSlice(temp))
         defer attrarena.Free()
         mecharena, mech := cMechanism(m)
         defer mecharena.Free()
 
 	UnWrappedKey  :=  make([]byte,MAX_BLOB_SIZE)
-        CSum:= make([]byte, 2*MAX_CSUMSIZE )
+        CSum:= make([]byte, MAX_BLOB_SIZE )
 
         var macKeyC C.CK_BYTE_PTR
 	macKeyC = nil
@@ -339,12 +340,12 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
-		  return nil, e1
+		  return nil, nil, e1
         }
 	UnWrappedKey = UnWrappedKey[:unwrappedLenC]
 	CSum = CSum[:cSumLenC]
 
-	return UnWrappedKey, nil
+	return UnWrappedKey, CSum, nil
 }
 
 
@@ -402,8 +403,6 @@ func GetAttributeValue(target C.target_t,  Key KeyBlob, attrs Attributes ) (map[
 
      // Need this for the passthrough case
      rv := C.m_GetAttributeValue(KeyC, KeyLenC, t, tcount, target)
-
-
 
      if rv != C.CKR_OK {
                 return nil,toError(rv)
