@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/asn1"
 	"encoding/hex"
+        "encoding/pem"
 	"fmt"
 	"os"
 )
@@ -63,6 +64,13 @@ func main() {
 	}
 	spkiLen := len(data) - len(rest)
 	fmt.Printf("SPKI detected (%d bytes):\n%s\n\n", spkiLen, hex.EncodeToString(data[:spkiLen]))
+
+	block := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: data[:spkiLen],
+	}
+
+	fmt.Printf("%s", pem.EncodeToMemory(block))
 
 	//------------------------------------------------------------------
 	// Step 2: Parse MACed OCTET STRING fields
