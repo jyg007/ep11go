@@ -3,83 +3,107 @@ package main
 import (
 	"encoding/asn1"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"os"
 )
 
-// ExtractSPKIAndMAC splits an EP11 export blob into SPKI and MACed trailer.
-func ExtractSPKIAndMAC(blob []byte) (spki []byte, maced []byte, err error) {
-	if len(blob) < 4 {
-		return nil, nil, errors.New("blob too short")
+// readASN1OctetString reads an OCTET STRING (tag 0x04) at the start of buf.
+// Returns the value bytes and remaining slice.
+func readASN1OctetString(buf []byte) ([]byte, []byte, error) {
+	if len(buf) < 2 {
+		return nil, nil, fmt.Errorf("buffer too short for OCTET STRING")
 	}
-
-	if blob[0] != 0x30 {
-		return nil, nil, errors.New("blob does not start with ASN.1 SEQUENCE (0x30)")
+	if buf[0] != 0x04 {
+		return nil, nil, fmt.Errorf("expected OCTET STRING (0x04), got 0x%02X", buf[0])
 	}
-
-	var headerLen int
-	var contentLen int
-
-	// Parse ASN.1 length field
-	switch {
-	case blob[1] < 0x80:
-		headerLen = 2
-		contentLen = int(blob[1])
-
-	default:
-		numLenBytes := int(blob[1] & 0x7f)
-		if 2+numLenBytes > len(blob) {
-			return nil, nil, errors.New("invalid ASN.1 long form length")
+	length := int(buf[1])
+	if length&0x80 != 0 { // long form
+		numBytes := length & 0x7f
+		if len(buf) < 2+numBytes {
+			return nil, nil, fmt.Errorf("buffer too short for long-form length")
 		}
-		headerLen = 2 + numLenBytes
-
-		contentLen = 0
-		for i := 0; i < numLenBytes; i++ {
-			contentLen = (contentLen << 8) | int(blob[2+i])
+		length = 0
+		for i := 0; i < numBytes; i++ {
+			length = (length << 8) | int(buf[2+i])
 		}
+		buf = buf[1+numBytes:]
+	} else {
+		buf = buf[2:]
 	}
 
-	spkiTotalLen := headerLen + contentLen
-	if spkiTotalLen > len(blob) {
-		return nil, nil, errors.New("ASN.1 length exceeds blob size")
+	if len(buf) < length {
+		return nil, nil, fmt.Errorf("buffer too short for content")
 	}
-
-	spki = blob[:spkiTotalLen]
-	maced = blob[spkiTotalLen:]
-
-	// Optional: verify ASN.1 correctness
-	var dummy asn1.RawValue
-	if _, err := asn1.Unmarshal(spki, &dummy); err != nil {
-		return nil, nil, fmt.Errorf("SPKI ASN.1 validation failed: %v", err)
-	}
-
-	return spki, maced, nil
+	value := buf[:length]
+	rest := buf[length:]
+	return value, rest, nil
 }
 
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage: %s <hexstring>\n", os.Args[0])
-		os.Exit(1)
+		return
 	}
 
-	hexBlob := os.Args[1]
-	blob, err := hex.DecodeString(hexBlob)
+	hexStr := os.Args[1]
+	data, err := hex.DecodeString(hexStr)
 	if err != nil {
-		fmt.Println("Invalid hex:", err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	spki, maced, err := ExtractSPKIAndMAC(blob)
+	fmt.Printf("Total blob length: %d bytes\n\n", len(data))
+
+	//------------------------------------------------------------------
+	// Step 1: Parse SPKI
+	//------------------------------------------------------------------
+	var spki asn1.RawValue
+	rest, err := asn1.Unmarshal(data, &spki)
 	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
+		panic(fmt.Errorf("Failed to parse SPKI DER: %v", err))
+	}
+	spkiLen := len(data) - len(rest)
+	fmt.Printf("SPKI detected (%d bytes):\n%s\n\n", spkiLen, hex.EncodeToString(data[:spkiLen]))
+
+	//------------------------------------------------------------------
+	// Step 2: Parse MACed OCTET STRING fields
+	//------------------------------------------------------------------
+	buf := rest
+
+	wkid, buf, err := readASN1OctetString(buf)
+	if err != nil {
+		panic(fmt.Errorf("WKID: %v", err))
 	}
 
-	fmt.Println("===== SPKI =====")
-	fmt.Println(hex.EncodeToString(spki))
+	sessionID, buf, err := readASN1OctetString(buf)
+	if err != nil {
+		panic(fmt.Errorf("SessionID: %v", err))
+	}
 
-	fmt.Println("===== MACED TRAILER =====")
-	fmt.Println(hex.EncodeToString(maced))
+	salt, buf, err := readASN1OctetString(buf)
+	if err != nil {
+		panic(fmt.Errorf("Salt: %v", err))
+	}
+
+	mode, buf, err := readASN1OctetString(buf)
+	if err != nil {
+		panic(fmt.Errorf("Mode: %v", err))
+	}
+
+	// Remaining bytes: attributes + MAC
+	if len(buf) < 32 {
+		panic("Not enough bytes for MAC")
+	}
+	mac := buf[len(buf)-32:]
+	attributes := buf[:len(buf)-32]
+
+	//------------------------------------------------------------------
+	// Step 3: Print results
+	//------------------------------------------------------------------
+	fmt.Println("===== MACed Fields (OCTET STRING) =====")
+	fmt.Printf("WKID (16 bytes):        %s\n", hex.EncodeToString(wkid))
+	fmt.Printf("SessionID (32 bytes):   %s\n", hex.EncodeToString(sessionID))
+	fmt.Printf("Salt (8 bytes):         %s\n", hex.EncodeToString(salt))
+	fmt.Printf("Mode (8 bytes):         %s\n", hex.EncodeToString(mode))
+	fmt.Printf("Attributes (%d bytes):  %s\n", len(attributes), hex.EncodeToString(attributes))
+	fmt.Printf("MAC (32 bytes):         %s\n", hex.EncodeToString(mac))
 }
-
