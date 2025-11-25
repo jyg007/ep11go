@@ -78,6 +78,6 @@ func main() {
         if plain == nil {
                 fmt.Println(err)
         } else {
-                fmt.Print("Decrypted: %x", plain)
+                fmt.Print("Decrypted: ", hex.EncodeToString(plain))
         }
 }

@@ -17,10 +17,11 @@ func main() {
        key := make([]byte, hex.DecodedLen(len(os.Args[1])))
        hex.Decode(key, []byte(os.Args[1]))
 
-       value := make([]byte, 10)
 
        attributeList := ep11.Attributes{
-	     C.CKA_CHECK_VALUE:  value,
+//	     C.CKA_ID:  make([]byte, 16),
+		C.CKA_ID: true,
+//	     C.CKA_LABEL: make([]byte, 32) ,
         }
 
       res, rc  := ep11.GetAttributeValue(target, key, attributeList)
