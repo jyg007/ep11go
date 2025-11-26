@@ -19,9 +19,7 @@ func main() {
 
 
        attributeList := ep11.Attributes{
-//	     C.CKA_ID:  make([]byte, 16),
-		C.CKA_ID: true,
-//	     C.CKA_LABEL: make([]byte, 32) ,
+	C.CKA_SIGN: true,
         }
 
       res, rc  := ep11.GetAttributeValue(target, key, attributeList)
