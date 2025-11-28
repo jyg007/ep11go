@@ -58,7 +58,6 @@ func main() {
 		fmt.Printf("\nWrapped Key:\n%x\n", wrapKey)
 	}
 
-
         unwrapKeyTemplate := ep11.Attributes{
                 C.CKA_CLASS:       C.CKO_SECRET_KEY,
                 C.CKA_KEY_TYPE:    C.CKK_GENERIC_SECRET,
