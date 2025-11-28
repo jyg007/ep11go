@@ -16,7 +16,6 @@ import "fmt"
 import "encoding/hex"
 import "ep11go/ep11"
 import "os"
-import "github.com/google/uuid"
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
@@ -29,11 +28,6 @@ func main() {
 
         data,_ := hex.DecodeString(os.Args[2])
 
-        id := uuid.New() // 16 bytes
-
-        // Specify a label
-        label := "MyAESKey"
-
         KeyTemplate := ep11.Attributes{
                 C.CKA_CLASS:       C.CKO_SECRET_KEY,
                 C.CKA_KEY_TYPE:    C.CKK_AES,
@@ -45,8 +39,6 @@ func main() {
                 C.CKA_DERIVE:      true,
                 C.CKA_IBM_USE_AS_DATA: true,
                 C.CKA_EXTRACTABLE: true,
-	        C.CKA_ID:              id[:],
-                C.CKA_LABEL:           []byte(label),  
         }
 
        // iv := []byte("000000000000000000")
