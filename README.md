@@ -1,6 +1,7 @@
-# EP11 PKCS#11 Go Bindings
+# IBM EP11 library Go Bindings — IBM HSM Crypto Library for Go
 
 Please find here a go wrapper to the IBM ep11 library used to execute cryptographic operation on IBM Hardware Security Module (IBM Crypto Express cards CX8S, CX7S)
+Alternative to opencryptoki
 
 The library focus on Digital Assets related cryptography schema and elliptic curves : EcDsa, Slip10 and EIP2333 derivations, BLS12-381, ED25519, Secp256k1.
 
