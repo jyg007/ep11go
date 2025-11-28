@@ -24,7 +24,7 @@ func main() {
  
         var err error
 
-        data,_ := hex.DecodeString(os.Args[1])
+        der,_ := hex.DecodeString(os.Args[1])
 
        pubECTemplate := ep11.Attributes{
 //                   C.CKA_EC_PARAMS:ecParameters,   Surtout ne pas mettre sinon cela provoque une erreur
@@ -39,7 +39,7 @@ func main() {
 	eckey,csum,err = ep11.UnWrapKey(target, 
 			ep11.Mech(C.CKM_IBM_TRANSPORTKEY, nil),
 			[]byte("a") ,
-			data,
+			der,
 			pubECTemplate,
 		)
 
