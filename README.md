@@ -1,4 +1,4 @@
-#EP11 PKCS#11 Go Bindings
+# EP11 PKCS#11 Go Bindings
 
 Please find here a go wrapper to the IBM ep11 library used to execute cryptographic operation on IBM Hardware Security Module (IBM Crypto Express cards CX8S, CX7S)
 
