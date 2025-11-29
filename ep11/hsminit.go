@@ -38,6 +38,7 @@ func HsmInit(input string) Target_t {
 
     module.version=C.XCP_MOD_VERSION
 	pairs := strings.Fields(input)
+        useVirtual := len(pairs) > 1
 	for _, pair := range pairs {
 		parts := strings.Split(pair, ".")
 		if len(parts) != 2 {
@@ -57,7 +58,11 @@ func HsmInit(input string) Target_t {
  		     module.domainmask[i] = 0
     		}
     		XCPTGTMASK_SET_DOM(&module.domainmask, domain)
-    		module.flags |= C.XCP_MFL_VIRTUAL | C.XCP_MFL_PROBE | C.XCP_MFL_MODULE
+    		module.flags |= C.XCP_MFL_PROBE | C.XCP_MFL_MODULE
+   	 	if useVirtual {
+            		module.flags |= C.XCP_MFL_VIRTUAL
+        	}
+
 		rc := C.m_add_module(&module, &target)
        		if rc != C.CKR_OK {
                 	fmt.Println(toError(C.CK_ULONG(rc)))

@@ -71,11 +71,12 @@ func main() {
                 C.CKA_EXTRACTABLE: false,
         }
         
-        unwrapKey ,err  := ep11.UnWrapKey(target , ep11.Mech(C.CKM_RSA_PKCS_OAEP,ep11.NewOAEPParams(C.CKM_SHA512, C.CKG_MGF1_SHA512,  0, nil )),sk, wrapKey,unwrapKeyTemplate) 
+        unwrapKey ,csum, err  := ep11.UnWrapKey(target , ep11.Mech(C.CKM_RSA_PKCS_OAEP,ep11.NewOAEPParams(C.CKM_SHA512, C.CKG_MGF1_SHA512,  0, nil )),sk, wrapKey,unwrapKeyTemplate) 
 
         if err != nil {
                fmt.Println(err)
         } else {
 		fmt.Printf("\nUnWrapped Key:\n%x\n", unwrapKey)
+		fmt.Printf("\nCsum:\n%x\n", csum)
 	}
 }
