@@ -429,27 +429,32 @@ func GetAttributeValue(target C.target_t,  Key KeyBlob, attrs Attributes ) (map[
     return result, nil
 }
 
+
+
+
+var secp256k1Order, _ = new(big.Int).SetString(
+	"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16,
+)
+
 func NormalizeLowS(sig []byte) ([]byte, error) {
 	if len(sig) != 64 {
 		return nil, fmt.Errorf("signature must be 64 bytes (r||s)")
 	}
 
-	r := new(big.Int).SetBytes(sig[0:32])
 	s := new(big.Int).SetBytes(sig[32:64])
+	halfN := new(big.Int).Rsh(secp256k1Order, 1)
 
-	// ---- REAL SECP256K1 ORDER ----
-	N, _ := new(big.Int).SetString("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16)
-
-	halfN := new(big.Int).Rsh(N, 1)
-
-	// If S > N/2 then s = N - S
-	if s.Cmp(halfN) == 1 {
-		s.Sub(N, s)
+	// If already low-S, return original slice to avoid copy
+	if s.Cmp(halfN) != 1 {
+		return sig, nil
 	}
 
-	// Reassemble the 64-byte signature
+	// Otherwise normalize
+	s.Sub(secp256k1Order, s)
+	r := sig[:32]
+
 	out := make([]byte, 64)
-	copy(out[0:32], r.FillBytes(make([]byte, 32)))
+	copy(out[0:32], r)
 	copy(out[32:64], s.FillBytes(make([]byte, 32)))
 	return out, nil
-}	
+}
