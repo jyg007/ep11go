@@ -65,8 +65,7 @@ func HsmInit(input string) Target_t {
 
 		rc := C.m_add_module(&module, &target)
        		if rc != C.CKR_OK {
-                	fmt.Println(toError(C.CK_ULONG(rc)))
-			return 0
+			fmt.Printf("Error from m_add_module: %s | adapter=0x%X | domain=0x%X\n", toError(C.CK_ULONG(rc)), adapter, domain)
         	}
           //    fmt.Printf("Module Initialiation Return Code: %d\n",rc)
 	}
