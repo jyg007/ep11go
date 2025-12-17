@@ -34,7 +34,7 @@ func main() {
 		    C.CKA_SIGN:true,
 		    C.CKA_DERIVE:true, 
 		    C.CKA_CLASS: C.CKO_PRIVATE_KEY,
-		    C.CKA_EXTRACTABLE: true, //required for wrap
+		    C.CKA_EXTRACTABLE: false, //required for wrap
         }
 
 	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
