@@ -4,7 +4,6 @@ package main
 #cgo LDFLAGS: -lep11
 #cgo CFLAGS: -I/usr/include/ep11 -I/usr/include/opencryptoki
 
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,18 +11,19 @@ package main
 #include <ep11.h>
 */
 import "C"
-import "fmt"
-import "ep11go/ep11"
-import "time"
-import "os"
-import "strconv"
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"sync"
+	"time"
 
-//##########################################################################################################################################################################################
-//##########################################################################################################################################################################################
-func main() { 
-      	// Get number of keys from command-line arguments
+	"ep11go/ep11"
+)
+
+func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: program <numKeys>")
+		fmt.Println("Usage: program <numKeys> [numThreads]")
 		return
 	}
 
@@ -32,40 +32,64 @@ func main() {
 		fmt.Println("Invalid number of keys. Please provide a positive integer.")
 		return
 	}
-      target := ep11.HsmInitNonVirtual("3.19") 
-      
-      keyTemplate := ep11.Attributes{
-              C.CKA_VALUE_LEN: 16 ,
-                C.CKA_UNWRAP: false,
-                C.CKA_ENCRYPT: true,
-      } 
 
-        
-	var aeskeys []ep11.KeyBlob
-        aeskeys = make([]ep11.KeyBlob, numKeys)
-        
-        startTime := time.Now()
-        // Generate 100000 AES keys
-        for i := 0; i < numKeys; i++ {
-                aeskey, _ := ep11.GenerateKey(target, ep11.Mech(C.CKM_AES_KEY_GEN, nil), keyTemplate)
-                aeskeys[i] = aeskey
-        }
+	numThreads := 8 // default
+	if len(os.Args) >= 3 {
+		t, err := strconv.Atoi(os.Args[2])
+		if err == nil && t > 0 {
+			numThreads = t
+		}
+	}
 
-        // Time taken for key generation
-        generationTime := time.Since(startTime)
-        fmt.Printf("Time taken to generate %d keys: %v\n", numKeys,generationTime)
+	target := ep11.HsmInit("3.19")
 
-        // Measure the time to reencipher the keys
-        startTime = time.Now()
-//	var k ep11.KeyBlob
-        // Reencipher all 100000 keys
-        for i := 0; i < numKeys; i++ {
-                _, _ = ep11.Reencipher(target, aeskeys[i])
-//		fmt.Printf("%x",k)
-        }
+	keyTemplate := ep11.Attributes{
+		C.CKA_VALUE_LEN: 16,
+		C.CKA_UNWRAP:   false,
+		C.CKA_ENCRYPT:  true,
+	}
 
-        // Time taken for reenciphering
-        reencipherTime := time.Since(startTime)
-        fmt.Printf("Time taken to reencipher %d keys: %v\n", numKeys,reencipherTime)
+	// Generate AES keys
+	aeskeys := make([]ep11.KeyBlob, numKeys)
+	startTime := time.Now()
+	for i := 0; i < numKeys; i++ {
+		aeskey, _ ,_:= ep11.GenerateKey(target, ep11.Mech(C.CKM_AES_KEY_GEN, nil), keyTemplate)
+		aeskeys[i] = aeskey
+	}
+	generationTime := time.Since(startTime)
+	fmt.Printf("Time taken to generate %d keys: %v\n", numKeys, generationTime)
+
+	// -------------------------------
+	// Reencipher keys in batches
+	// -------------------------------
+	startTime = time.Now()
+
+	var wg sync.WaitGroup
+	batchSize := numKeys / numThreads
+	if batchSize == 0 {
+		batchSize = 1
+	}
+
+	for w := 0; w < numThreads; w++ {
+		start := w * batchSize
+		end := start + batchSize
+		if w == numThreads-1 {
+			end = numKeys // last worker handles remaining keys
+		}
+		wg.Add(1)
+		go func(keys []ep11.KeyBlob) {
+			defer wg.Done()
+			for _, k := range keys {
+				_, err := ep11.Reencipher(target, k)
+				if err != nil {
+					fmt.Printf("Reencipher error: %v\n", err)
+				}
+			}
+		}(aeskeys[start:end])
+	}
+
+	wg.Wait()
+	reencipherTime := time.Since(startTime)
+	fmt.Printf("Time taken to reencipher %d keys using %d threads: %v\n", numKeys, numThreads, reencipherTime)
 }
 
