@@ -33,7 +33,7 @@ func main() {
 	}
 	fmt.Printf("Login extended successful\npinBlob=%x\n\n", pinBlob)
         
-	rcc = ep11.EP11Logout([]byte(os.Args[2]), target)
+//	rcc = ep11.EP11Logout([]byte(os.Args[2]), target)
 	if rcc != nil {
 		fmt.Println("Failed to connect")
 		fmt.Println(rcc)
