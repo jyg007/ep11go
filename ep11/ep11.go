@@ -430,8 +430,38 @@ func GetAttributeValue(target C.target_t,  Key KeyBlob, attrs Attributes ) (map[
 }
 
 
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
+func EP11admin(target C.target_t, command, signatures []byte) ([]byte, error) {
+        response2sig := make([]byte, C.XCP_RSPSIG_MAX_BYTES+C.XCP_RSPSIG_QS_MAX_BYTES)
+	response2sigC :=  (*C.uchar)(unsafe.Pointer(&response2sig[0]))
+        response2siglenC := C.ulong(len(response2sig))
 
+        response1 := make([]byte, MAX_BLOB_SIZE)
+	response1C :=  (*C.uchar)(unsafe.Pointer(&response1[0]))
+        response1lenC := C.ulong(len(response1))
 
+	commandC :=(*C.uchar)(C.CBytes(command))
+	commandLenC := C.ulong(len(command))
+
+        var sigInfoBytesC *C.uchar
+        if len(signatures) == 0 {
+                sigInfoBytesC = nil
+        } else {
+                sigInfoBytesC = (*C.uchar)(unsafe.Pointer(&signatures[0]))
+        }       
+
+        rv := C.m_admin(response1C, &response1lenC,response2sigC , &response2siglenC, commandC, commandLenC, sigInfoBytesC, C.ulong(len(signatures)), target)
+        if rv != 0 {
+		fmt.Println(toError(rv))
+                return nil,toError(rv)
+        }     
+ 
+        return response1[:response1lenC], nil
+}     
+
+//##########################################################################################################################################################################################
+//##########################################################################################################################################################################################
 var secp256k1Order, _ = new(big.Int).SetString(
 	"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16,
 )

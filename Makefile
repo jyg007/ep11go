@@ -1,4 +1,4 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login
+all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go
 
@@ -137,5 +137,9 @@ kyberdecapsulatehybrid: kyberdecapsulatehybrid.go $(deps)
 
 benchmark4: benchmark4.go $(deps)
 	go build  benchmark4.go
+
 ep11login: ep11login.go $(deps)
 	go build  ep11login.go
+
+ep11admin: ep11admin.go $(deps)
+	go build  ep11admin.go
