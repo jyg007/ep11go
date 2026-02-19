@@ -109,7 +109,7 @@ type AlgorithmIdentifier struct {
 
 type SignerInfo struct {
     Version             int
-    SubjectKeyIdentifier []byte  `asn1:"explicit,tag:0"`
+    SubjectKeyIdentifier []byte  `asn1:"tag:0"`
     DigestAlgorithm     AlgorithmIdentifier
     SignatureAlgorithm  AlgorithmIdentifier
     Signature           []byte
@@ -159,7 +159,7 @@ func parseRSAPrivateKeyPEM(privBytes []byte) (*rsa.PrivateKey, error) {
 func GenerateSignatures(privKeys [][]byte, cmdBlock []byte) ([]byte, error) {
     var rawSigs []byte
     hash := sha256.Sum256(cmdBlock)
-
+    
     for _, privBytes := range privKeys {
         // Parse private key
  	priv, err := parseRSAPrivateKeyPEM(privBytes)
@@ -207,7 +207,6 @@ func GenerateSignatures(privKeys [][]byte, cmdBlock []byte) ([]byte, error) {
         // Append to rawSigs
         rawSigs = append(rawSigs, der...)
     }
-
     return rawSigs, nil
 }
 
