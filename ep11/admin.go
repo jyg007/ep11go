@@ -115,6 +115,13 @@ type SignerInfo struct {
     Signature           []byte
 }
 
+type KeyTransRecipientInfo struct {
+	Version                int
+	RID                    []byte `asn1:"tag:0,implicit"` // [0] IMPLICIT OCTET STRING
+	KeyEncryptionAlgorithm AlgorithmIdentifier
+	EncryptedKey           []byte
+}
+
 // Helper to compute SKI from RSA public key (PKCS#1)
 type pkcs1PublicKey struct {
     N *big.Int
@@ -124,6 +131,8 @@ type pkcs1PublicKey struct {
 // Example OIDs
 var oidSHA256 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 2, 1}
 var oidSHA256WithRSA = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 11}
+var oidRSAEncryption = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
+
 var asnNull = asn1.RawValue{Tag: 5, Class: 0}
 
 
@@ -210,6 +219,70 @@ func GenerateSignatures(privKeys [][]byte, cmdBlock []byte) ([]byte, error) {
     return rawSigs, nil
 }
 
+type InnerXCPRequestKeyPart struct {
+        FunctionId  []byte  `asn1:"octet"`
+        Domain         []byte  `asn1:"octet"`
+        Command []byte `asn1:"octet"`
+        Signatures   []byte `asn1:"octet"`
+}
+
+func SignKeyPart(target C.target_t, hsmDomain uint32, keypart,spi []byte, privKey []byte) ([]byte, error) {
+
+	resp , err:= AdminQuery(target,hsmDomain, C.XCP_ADMQ_DOMADMIN)        
+        if err != nil {    
+		return nil, fmt.Errorf("failed to query domain : %w", err)
+        }
+
+	payload :=  KeyTransRecipientInfo{
+		Version: 2,
+		RID:  spi,
+		KeyEncryptionAlgorithm:  AlgorithmIdentifier{
+	                Algorithm:  oidRSAEncryption,
+        	        Parameters: asnNull,
+		},
+		EncryptedKey: keypart,
+	}
+	payloadBytes, err := asn1.Marshal(payload)
+        if err != nil {
+                return nil, fmt.Errorf("failed to marshal AdminBlock: %w", err)
+         }
+        var p1 [4]byte
+        binary.BigEndian.PutUint32(p1[:], C.XCP_ADM_IMPORT_WK)
+
+        cmdblock :=  AdminBlock{
+                AdmFunctionId:    p1[:],
+                Domain:           resp.Domain,
+                ModuleIdentifier: resp.ModuleIdentifier,
+                TransactionCtr:   Increment16ByteCounter(resp.TransactionCtr),
+                Payload:          payloadBytes,
+        }
+	cmdblockBytes, err := asn1.Marshal(cmdblock)
+        if err != nil {
+                return nil, fmt.Errorf("failed to marshal cmdlock: %w", err)
+        }
+
+       	signature, err := GenerateSignatures([][]byte{privKey} , cmdblockBytes)
+       	if err != nil {
+         		return nil, fmt.Errorf("failed to generate signatures: %w", err)
+       	}
+
+        var p2 [4]byte
+        binary.BigEndian.PutUint32(p2[:], (6 << 16) | C.__FNID_admin) //current API ordinal is 6
+        var p3 [4]byte
+        binary.BigEndian.PutUint32(p3[:], hsmDomain) //current API ordinal is 6
+	r := InnerXCPRequestKeyPart{
+                FunctionId:    	  p2[:],
+                Domain:           p3[:],
+                Command: cmdblockBytes,
+		Signatures: signature,
+	}
+	rBytes, err := asn1.Marshal(r)
+        if err != nil {
+                return nil, fmt.Errorf("failed to marshal innerxpcrequestkeypart: %w", err)
+        }
+	return rBytes,nil
+
+}
 
 func AdminCommand(target C.target_t, hsmDomain uint32, admCmd uint32, payload []byte, privKeys [][]byte) (AdminResponseBlock, error) {
 

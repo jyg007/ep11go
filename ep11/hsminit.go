@@ -69,6 +69,7 @@ func HsmInit(input string) Target_t {
 		fmt.Printf("Error from m_add_module: %s | adapter=0x%X | domain=0x%X\n", toError(C.CK_ULONG(rc)), adapter, domain)
        	} else {
       	   successCount++   // <── SUCCESS
+           //fmt.Printf("API %d\n",module.api)
        }
           //    fmt.Printf("Module Initialiation Return Code: %d\n",rc)
     }
