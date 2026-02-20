@@ -317,6 +317,7 @@ func AdminCommand(target C.target_t, hsmDomain uint32, admCmd uint32, payload []
             		return AdminResponseBlock{}, fmt.Errorf("failed to generate signatures: %w", err)
         	}
     	}
+	
 	// 5️⃣ Call EP11admin with command and optional signatures
 	response, err := EP11admin(target,derBytes, signatures)
         if err != nil {
