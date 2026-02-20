@@ -138,7 +138,7 @@ var asnNull = asn1.RawValue{Tag: 5, Class: 0}
 
 // parseRSAPrivateKeyPEM parses a PEM-encoded RSA private key.
 // Supports both PKCS#1 ("RSA PRIVATE KEY") and PKCS#8 ("PRIVATE KEY").
-func parseRSAPrivateKeyPEM(privBytes []byte) (*rsa.PrivateKey, error) {
+func ParseRSAPrivateKeyPEM(privBytes []byte) (*rsa.PrivateKey, error) {
     block, _ := pem.Decode(privBytes)
     if block == nil {
         return nil, errors.New("failed to decode PEM block")
@@ -171,7 +171,7 @@ func GenerateSignatures(privKeys [][]byte, cmdBlock []byte) ([]byte, error) {
     
     for _, privBytes := range privKeys {
         // Parse private key
- 	priv, err := parseRSAPrivateKeyPEM(privBytes)
+ 	priv, err := ParseRSAPrivateKeyPEM(privBytes)
         if err != nil {
             return nil, fmt.Errorf("failed to parse private key: %w", err)
         }
