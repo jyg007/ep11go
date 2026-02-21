@@ -170,7 +170,7 @@ func main() {
 	privadmin1Bytes, err := hex.DecodeString(privadmin1hex)
         cert1Bytes, err := hex.DecodeString(cert1hex)
 
-	resp , err:= ep11.AdminCommand(target,domain, C.XCP_ADM_DOM_ADMIN_LOGIN,cert1Bytes,nil)        
+	resp , err:= ep11.AdminCommand(target,domain, C.XCP_ADM_ADMIN_LOGIN,cert1Bytes,nil)        
         if err != nil {    
             fmt.Println(err)
         }
@@ -184,25 +184,30 @@ func main() {
 	attrs := []ep11.AdminAttribute{
         	{Attribute: C.XCP_ADMINT_SIGN_THR , Value: 1}, 
         	{Attribute: C.XCP_ADMINT_REVOKE_THR, Value: 1},
-        	{Attribute: C.XCP_ADMINT_PERMS, Value: uint32(C.XCP_ADMP_WK_RANDOM | C.XCP_ADMP_WK_IMPORT | C.XCP_ADMP_WK_EXPORT | C.XCP_ADMP_WK_1PART | C.XCP_ADMP_1SIGN | C.XCP_ADMP_CHG_1SIGN | C.XCP_ADMP_CP_1SIGN | C.XCP_ADMP_CHG_SIGN_THR | C.XCP_ADMP_CHG_REVOKE_THR | C.XCP_ADMP_DO_NOT_DISTURB)}, 
+        	{Attribute: C.XCP_ADMINT_PERMS, Value: uint32( C.XCP_ADMP_1SIGN | C.XCP_ADMP_CHG_SIGN_THR | C.XCP_ADMP_CHG_REVOKE_THR | C.XCP_ADMP_CHG_1SIGN | C.XCP_ADMP_CHG_ZERO_1SIGN | C.XCP_ADMP_CHG_ST_IMPORT | C.XCP_ADMP_CHG_ST_EXPORT | C.XCP_ADMP_CHG_ST_1PART | C.XCP_ADMP_CHG_DO_NOT_DISTURB )}, 
     	}
 
 	attrsBytes	:= ep11.GenerateAttributeBytes(attrs)
 
-	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_DOM_SET_ATTR,attrsBytes,[][]byte{privadmin1Bytes})        
+	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_SET_ATTR,attrsBytes,[][]byte{privadmin1Bytes})        
         if err != nil {    
             fmt.Println(err)
         }
 	PrintAdminAttributes(resp.Response)
 	fmt.Println()
 	
-// **********************************************************************************************************************
-//  GENERATE MEK  One for Current and one for New register
-// **********************************************************************************************************************
-	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_GEN_WK,nil,[][]byte{privadmin1Bytes})        
-        if err != nil {    
-            fmt.Println(err)
-        } else {
-		fmt.Printf("MEK verification pattern     %x\n", resp.Response)
-   	}
 }
+
+/*
+Adapter attributes
+XCP_ADMINT_SIGN_THR       = 0x00000002 (2)
+XCP_ADMINT_REVOKE_THR     = 0x00000002 (2)
+XCP_ADMINT_PERMS          = 0x8f700010 (2406481936)
+XCP_ADMINT_MODE           = 0x00040203 (262659)
+XCP_ADMINT_STD            = 0x00000001 (1)
+XCP_ADMINT_PERMS_EXT01    = 0x000f000f (983055)
+XCP_ADMINT_GEN_KTYPES     = 0x00070007 (458759)
+XCP_ADMINT_ECC_KTYPES     = 0x00070007 (458759)
+XCP_ADMINT_DIL_KTYPES     = 0x00030003 (196611)
+XCP_ADMINT_ADM_COMPL      = 0x00000000 (0)
+*/

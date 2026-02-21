@@ -53,6 +53,9 @@ func PrintAdminAttributes(data []byte) {
             value,
             value,
         )
+	if (index==3) {
+		AnalysePermissions(value)
+	}
     }
 
 }
@@ -103,15 +106,14 @@ func AnalysePermissions(perm uint32) {
 
 	for _, p := range permissions {
 		if perm&p.Value != 0 {
-			fmt.Printf("✔ %s (0x%08X)\n", p.Name, p.Value)
+//			fmt.Printf("✔ %s (0x%08X)\n", p.Name, p.Value)
 			enabled = append(enabled, p.Name)
 		}
 	}
 
 	// Print all enabled permissions as a single | separated string
 	if len(enabled) > 0 {
-		fmt.Println("\nAll enabled permissions:")
-		fmt.Println(strings.Join(enabled, " | "))
+		fmt.Printf("    %s\n",strings.Join(enabled, " | "))
 	}
 }
 
@@ -191,6 +193,7 @@ func main() {
     	}
 
 	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_DOM_ADMIN_LOGIN,cert1Bytes,nil)        
+//	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_ADMIN_LOGIN,cert1Bytes,nil)        
         if err != nil {    
             fmt.Println(err)
         }
