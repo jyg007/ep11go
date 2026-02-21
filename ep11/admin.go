@@ -299,7 +299,7 @@ func AdminCommand(target C.target_t, hsmDomain uint32, admCmd uint32, payload []
         block :=  AdminBlock{
         	AdmFunctionId:    p1[:],
 	        Domain:           resp.Domain,
-        	ModuleIdentifier: resp.ModuleIdentifier,
+       		ModuleIdentifier: resp.ModuleIdentifier,
 	        TransactionCtr:   Increment16ByteCounter(resp.TransactionCtr),
         	Payload:          payload,
     	}
@@ -377,6 +377,49 @@ func AdminQuery(target C.target_t, hsmDomain uint32, admCmd uint32) (AdminRespon
     } 
  
     return rspBlock, nil
+
+}
+
+func AdminQueryWithPayload(target C.target_t, hsmDomain uint32, admCmd uint32, payload []byte) (AdminResponseBlock, error) {
+    var p1 [4]byte
+    var p2 [8]byte
+
+    // Admin function ID (e.g. XCP_ADMQ_DOM_ATTRS, XCP_ADMQ_WK, etc.)
+    binary.BigEndian.PutUint32(p1[:], admCmd)
+
+    // Domain encoding: domain value in high 32 bits
+    binary.BigEndian.PutUint64(p2[:], uint64(hsmDomain)<<32)
+
+
+
+    block := AdminBlock{
+        AdmFunctionId: p1[:],
+//        Domain:        p2[:],
+       	Payload:          payload[:],
+    }
+
+    derBytes, err := asn1.Marshal(block)
+    if err != nil {
+        return AdminResponseBlock{}, fmt.Errorf("failed to marshal AdminBlock: %w", err)
+    }
+
+    response, err := EP11admin(target, derBytes, nil)
+    if err != nil {
+        return AdminResponseBlock{},    fmt.Errorf("EP11admin call failed: %w", err)
+    }
+
+    var rspBlock AdminResponseBlock
+    _, err = asn1.Unmarshal(response, &rspBlock)
+    if err != nil {
+          return AdminResponseBlock{},    fmt.Errorf("Failed to unmarshall response: %w", err)
+    }
+
+    rc := binary.BigEndian.Uint32(rspBlock.ResponseCode)
+    if rc != 0 {
+	return AdminResponseBlock{}, toError(C.CK_RV(rc))
+    }
+ 
+     return rspBlock, nil
 
 }
 
