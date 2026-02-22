@@ -24,6 +24,7 @@ import (
 	"os"
         "strconv"
 	"log"
+	"flag"
 )
 
 func printSKIs(payload []byte) {
@@ -120,37 +121,56 @@ func wrapSPKI(spki []byte) ([]byte, *rsa.PublicKey, error) {
 }
 
 func main() {
-        if len(os.Args) < 3 {
-                fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> --key-file <file>] [--key-hex <hex>],\n",
-                        os.Args[0],
-                )
-                os.Exit(1)
-        }
+	if len(os.Args) < 3 {
+        fmt.Fprintf(os.Stderr,
+            "usage: %s <control-domain> <domain> [--key-file <file>] [--key-hex <hex>] [--mek <hex>]\n",
+            os.Args[0],
+        )
+        os.Exit(1)
+   	 }
 
-        controlDomain := os.Args[1]
+	// Positional args
+	controlDomain := os.Args[1]
+	
+	domain64, err := strconv.ParseUint(os.Args[2], 10, 32)
+	if err != nil {
+	    log.Fatalf("invalid domain: %v", err)
+	}
+	domain := uint32(domain64)
+	
+	target := ep11.HsmInit(controlDomain)
+	
+	// Optional args after the first two
+	args := os.Args[3:]
+	fs := flag.NewFlagSet("optional", flag.ExitOnError)
 
-        domain64, err := strconv.ParseUint(os.Args[2], 10, 32)
-        if err != nil {
-                log.Fatalf("invalid domain: %v", err)
-        }
-        domain := uint32(domain64)
+	//openssl rand -hex 32	
+	mekHex := fs.String("mek", "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff", "MEK to import (hex)")
+	
+	if err := fs.Parse(args); err != nil {
+	    log.Fatal(err)
+	}
+	
+	// Load private key
+	privadmin1Bytes, err := ep11.LoadKeyBytes(fs.Args()) // pass remaining flags to your loader
+	if err != nil {
+	    log.Fatal(err)
+	}
+	
+	// Load SKI
+	skiBytes, err := ep11.LoadSKIBytes(fs.Args())
+	if err != nil {
+	    log.Fatal(err)
+    }
 
-        target := ep11.HsmInit(controlDomain)
-
-        args   := os.Args[3:]
-        privadmin1Bytes, err := ep11.LoadKeyBytes(args)
-        if err != nil {
-                  log.Fatal(err)
-                  return
-        }
-	skiBytes, err := ep11.LoadSKIBytes(args)
-                if err != nil {
-                        log.Fatal(err)
-        }
+    // MEK bytes (hex → []byte)
+    mekBytes, err := hex.DecodeString(*mekHex)
+    if err != nil {
+        log.Fatalf("invalid MEK hex: %v", err)
+    }
 
 	// MEK to import
-	mekhex := "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
+	//mekhex := "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
 
 // **********************************************************************************************************************
 // SET ATTRIBUTES - IMPRINTNG
@@ -184,10 +204,9 @@ func main() {
 // **********************************************************************************************************************
         _, importKey, err := wrapSPKI(resp.Response)
 
-	mek, _ := hex.DecodeString(mekhex)
-	mkvp := sha256.Sum256(append([]byte{1},mek ...))
+	mkvp := sha256.Sum256(append([]byte{1},mekBytes ...))
 
-	encmek, err := rsa.EncryptPKCS1v15(rand.Reader, importKey, mek)
+	encmek, err := rsa.EncryptPKCS1v15(rand.Reader, importKey, mekBytes)
         fmt.Printf("mkvp        %x\n",mkvp)
 
 	signedmek , err := ep11.SignKeyPart(target,domain, encmek,  skiBytes, privadmin1Bytes)
