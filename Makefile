@@ -1,4 +1,4 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load ep11zeroify ep11scanmkvp ep11loadrandom ep11mload ep11audit  ep11card
+all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load ep11zeroify ep11scanmkvp ep11loadrandom ep11mload ep11audit  ep11card ep11getattr
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go 
 ep11deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go ep11/helpers.go
@@ -165,3 +165,6 @@ ep11audit: ep11audit.go $(ep11deps)
 
 ep11card: ep11card.go $(ep11deps)
 	go build  ep11card.go
+
+ep11getattr: ep11getattr.go $(ep11deps)
+	go build  ep11getattr.go
