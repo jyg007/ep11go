@@ -13,7 +13,7 @@ import "ep11go/ep11"
 import (
 	"encoding/binary"
 	"fmt"
-	"log"
+//	"encoding/hex"
 	"strings"
 	"os"
 	"strconv"
@@ -53,6 +53,9 @@ func PrintAdminAttributes(data []byte) {
             value,
             value,
         )
+	if (index==3) {
+		AnalysePermissions(value)
+	}
     }
 
 }
@@ -103,15 +106,14 @@ func AnalysePermissions(perm uint32) {
 
 	for _, p := range permissions {
 		if perm&p.Value != 0 {
-			fmt.Printf("✔ %s (0x%08X)\n", p.Name, p.Value)
+//			fmt.Printf("✔ %s (0x%08X)\n", p.Name, p.Value)
 			enabled = append(enabled, p.Name)
 		}
 	}
 
 	// Print all enabled permissions as a single | separated string
 	if len(enabled) > 0 {
-		fmt.Println("\nAll enabled permissions:")
-		fmt.Println(strings.Join(enabled, " | "))
+		fmt.Printf("    %s\n",strings.Join(enabled, " | "))
 	}
 }
 
@@ -145,62 +147,88 @@ func adminAttrName(index uint32) string {
 
 
 func main() {
-       if len(os.Args) < 3 {
-                fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> --key-file <file>] [--key-hex <hex>],\n",
-                        os.Args[0],
-                )
+        if len(os.Args) != 3 {
+                fmt.Fprintf(os.Stderr, "usage: %s <control-domain> <domain>\n", os.Args[0])
                 os.Exit(1)
         }
 
+        // 1) Control domain (e.g. "3.19")
         controlDomain := os.Args[1]
 
+        // 2) Target domain (e.g. 16)
         domain64, err := strconv.ParseUint(os.Args[2], 10, 32)
-        if err != nil {
-                log.Fatalf("invalid domain: %v", err)
-        }
         domain := uint32(domain64)
-
-        target := ep11.HsmInit(controlDomain)
-
-        args   := os.Args[3:]
-        privadmin1Bytes, err := ep11.LoadKeyBytes(args)
         if err != nil {
-           log.Fatal(err)
-                  return
+                fmt.Fprintf(os.Stderr, "invalid domain: %v\n", err)
+                os.Exit(1)
         }
 
-
+        target := ep11.HsmInit(controlDomain) 
+	
 // **********************************************************************************************************************
-// SET ATTRIBUTES
+// QUERY ATTRIBUTES
 // **********************************************************************************************************************
-	attrs := []ep11.AdminAttribute{
-        	{Attribute: C.XCP_ADMINT_SIGN_THR , Value: 1}, 
-        	{Attribute: C.XCP_ADMINT_REVOKE_THR, Value: 1},
-        	{Attribute: C.XCP_ADMINT_PERMS, Value: uint32( C.XCP_ADMP_1SIGN | C.XCP_ADMP_CHG_SIGN_THR | C.XCP_ADMP_CHG_REVOKE_THR | C.XCP_ADMP_CHG_1SIGN | C.XCP_ADMP_CHG_ZERO_1SIGN | C.XCP_ADMP_CHG_ST_IMPORT | C.XCP_ADMP_CHG_ST_EXPORT | C.XCP_ADMP_CHG_ST_1PART | C.XCP_ADMP_CHG_DO_NOT_DISTURB )}, 
-    	}
-
-	attrsBytes	:= ep11.GenerateAttributeBytes(attrs)
-
-	resp , err := ep11.AdminCommand(target,domain, C.XCP_ADM_SET_ATTR,attrsBytes,[][]byte{privadmin1Bytes})        
+	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_DOM_ATTRS)        
         if err != nil {    
             fmt.Println(err)
         }
-	PrintAdminAttributes(resp.Response)
 	fmt.Println()
-	
-}
-
-/*
-Adapter attributes
-XCP_ADMINT_SIGN_THR       = 0x00000002 (2)
-XCP_ADMINT_REVOKE_THR     = 0x00000002 (2)
-XCP_ADMINT_PERMS          = 0x8f700010 (2406481936)
-XCP_ADMINT_MODE           = 0x00040203 (262659)
-XCP_ADMINT_STD            = 0x00000001 (1)
-XCP_ADMINT_PERMS_EXT01    = 0x000f000f (983055)
-XCP_ADMINT_GEN_KTYPES     = 0x00070007 (458759)
-XCP_ADMINT_ECC_KTYPES     = 0x00070007 (458759)
-XCP_ADMINT_DIL_KTYPES     = 0x00030003 (196611)
-XCP_ADMINT_ADM_COMPL      = 0x00000000 (0)
+	fmt.Printf("Domain attributes\n")
+	PrintAdminAttributes(resp.Response)
 */
+
+
+// **********************************************************************************************************************
+// LIST ADMIN SKIs
+// **********************************************************************************************************************
+	resp , err := ep11.AdminQuery(target,domain, C.XCP_ADMQ_DOMADMIN)        
+        if err != nil {    
+            fmt.Println(err)
+        }
+	fmt.Println()
+	printSKIs(resp.Response)
+
+	 
+// **********************************************************************************************************************
+// SCAN CARD ATTRIBUTES
+// **********************************************************************************************************************
+	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_ATTRS)        
+        if err != nil {    
+            fmt.Println(err)
+        }
+	fmt.Println()
+	fmt.Printf("Adapter attributes\n")
+	PrintAdminAttributes(resp.Response)
+	
+// **********************************************************************************************************************
+// SCAN DOMAIN ATTRIBUTES
+// **********************************************************************************************************************
+	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_DOM_ATTRS)        
+        if err != nil {    
+            fmt.Println(err)
+        }
+	fmt.Println()
+	fmt.Printf("Domain attributes\n")
+	PrintAdminAttributes(resp.Response)
+	
+// **********************************************************************************************************************
+// SCAN MEK MKVPS
+// **********************************************************************************************************************
+	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_WK_ORIGINS)        
+        if err != nil {    
+            fmt.Println(err)
+        }
+	fmt.Printf("\nKey Parts pattern         %x\n", resp.Response)
+	
+/*
+	fmt.Printf("AdmFunctionId:    %X\n", resp.AdmFunctionId)
+	fmt.Printf("Domain:           %X\n", resp.Domain)
+	fmt.Printf("ModuleIdentifier: %X\n", resp.ModuleIdentifier)
+	fmt.Printf("TransactionCtr:   %X\n", resp.TransactionCtr)
+	fmt.Printf("ResponseCode:     %X ", resp.ResponseCode)
+*/
+	
+//	fmt.Printf("Response:          %X\n", resp.Response)
+//	fmt.Println("---------------------------------")
+
+}

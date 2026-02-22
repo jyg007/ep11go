@@ -1,6 +1,7 @@
 all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load ep11zeroify ep11scanmkvp ep11loadrandom ep11mload ep11audit  ep11card
 
-deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go 
+deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go 
+ep11deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go ep11/helpers.go
 
 keygenc: keygen.c
 	gcc -o keygenc keygen.c -l ep11 -I /usr/include/ep11 -I /usr/include/opencryptoki/
@@ -138,29 +139,29 @@ kyberdecapsulatehybrid: kyberdecapsulatehybrid.go $(deps)
 benchmark4: benchmark4.go $(deps)
 	go build  benchmark4.go
 
-ep11login: ep11login.go $(deps)
+ep11login: ep11login.go $(ep11deps)
 	go build  ep11login.go
 
-ep11admin: ep11admin.go $(deps)
+ep11admin: ep11admin.go $(ep11deps)
 	go build  ep11admin.go
 
-ep11load: ep11load.go $(deps)
+ep11load: ep11load.go $(ep11deps)
 	go build  ep11load.go
 
-ep11mload: ep11mload.go $(deps)
+ep11mload: ep11mload.go $(ep11deps)
 	go build  ep11mload.go
 
-ep11loadrandom: ep11loadrandom.go $(deps)
+ep11loadrandom: ep11loadrandom.go $(ep11deps)
 	go build  ep11loadrandom.go
 
-ep11zeroify: ep11zeroify.go $(deps)
+ep11zeroify: ep11zeroify.go $(ep11deps)
 	go build  ep11zeroify.go
 
-ep11scanmkvp: ep11scanmkvp.go $(deps)
+ep11scanmkvp: ep11scanmkvp.go $(ep11deps)
 	go build  ep11scanmkvp.go
 
-ep11audit: ep11audit.go $(deps)
+ep11audit: ep11audit.go $(ep11deps)
 	go build  ep11audit.go
 
-ep11card: ep11card.go $(deps)
+ep11card: ep11card.go $(ep11deps)
 	go build  ep11card.go
