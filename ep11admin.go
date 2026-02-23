@@ -247,7 +247,7 @@ func getattr(target ep11.Target_t, domain uint32) ( []byte, error)  {
 func main() {
         if len(os.Args) < 4 {
                 fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> <add|list|remove|setattr|getattr|clearmek|genrandommek|zero> [options]\n",
+                        "usage: %s <control-domain> <domain> <add|list|del|setattr|getattr|clearmek|genrandommek|zero> [options]\n",
                         os.Args[0],
                 )
                 os.Exit(1)
@@ -278,7 +278,7 @@ func main() {
                         log.Fatal(err)
                 }
         
-        case "remove":
+        case "del":
                 skiBytes, err := ep11.LoadSKIBytes(args)
                 if err != nil {
                         log.Fatal(err)

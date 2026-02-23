@@ -199,7 +199,7 @@ func DecodeCPs(data []byte) []string {
                 if name, ok := cpNames[cpNum]; ok {
                     active = append(active, name)
                 } else {
-                    active = append(active, fmt.Sprintf("Unknown_CP_%d", cpNum))
+    //                active = append(active, fmt.Sprintf("Unknown_CP_%d", cpNum))
                 }
             }
         }
@@ -234,7 +234,6 @@ func adminAttrName(index uint32) string {
         return fmt.Sprintf("UNKNOWN_%d", index)
     }
 }
-
 
 func main() {
         if len(os.Args) != 3 {
@@ -302,6 +301,7 @@ func main() {
 
     	activeCPs := DecodeCPs(resp.Response)
     	fmt.Println(activeCPs)
+	
 	
 // **********************************************************************************************************************
 // SCAN MEK MKVPS
