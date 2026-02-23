@@ -175,6 +175,7 @@ func main() {
 // **********************************************************************************************************************
 // SET ATTRIBUTES - IMPRINTNG
 // **********************************************************************************************************************
+/*
 	attrs := []ep11.AdminAttribute{
         	{Attribute: C.XCP_ADMINT_SIGN_THR , Value: 1}, 
         	{Attribute: C.XCP_ADMINT_REVOKE_THR, Value: 1},
@@ -187,13 +188,13 @@ func main() {
         if err != nil {    
             fmt.Println(err)
         }
-
+*/
 // **********************************************************************************************************************
 // **********************************************************************************************************************
 	var attr[4]byte
         binary.BigEndian.PutUint32(attr[:], C.XCP_IMPRKEY_RSA_4096)
 	
-	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_GEN_DOM_IMPORTER,attr[:],[][]byte{privadmin1Bytes})        
+	resp , err := ep11.AdminCommand(target,domain, C.XCP_ADM_GEN_DOM_IMPORTER,attr[:],[][]byte{privadmin1Bytes})        
         if err != nil {    
 	    
             fmt.Println(err)

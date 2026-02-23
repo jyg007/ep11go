@@ -151,20 +151,14 @@ ep11load: ep11load.go $(ep11deps)
 ep11mload: ep11mload.go $(ep11deps)
 	go build  ep11mload.go
 
-ep11loadrandom: ep11loadrandom.go $(ep11deps)
-	go build  ep11loadrandom.go
-
-ep11zeroify: ep11zeroify.go $(ep11deps)
-	go build  ep11zeroify.go
-
 ep11scanmkvp: ep11scanmkvp.go $(ep11deps)
 	go build  ep11scanmkvp.go
 
 ep11audit: ep11audit.go $(ep11deps)
 	go build  ep11audit.go
 
-ep11card: ep11card.go $(ep11deps)
-	go build  ep11card.go
+ep11cardadmin: ep11cardadmin.go $(ep11deps)
+	go build  ep11cardadmin.go
 
 ep11getattr: ep11getattr.go $(ep11deps)
 	go build  ep11getattr.go
