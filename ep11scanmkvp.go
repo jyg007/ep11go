@@ -40,7 +40,7 @@ func main() {
 // SCAN DOMAINS
 // **********************************************************************************************************************
 for domain := uint32(0); domain <= max; domain++ {
-    fmt.Printf("\n--- Domain %d ---\n", domain)
+    fmt.Printf("\n--- Domain %d | 0x%x ---\n", domain,domain)
 
     resp, err := ep11.AdminQuery(target, domain, C.XCP_ADMQ_WK)
     if err != nil {
