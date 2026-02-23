@@ -219,10 +219,19 @@ func getattr(target ep11.Target_t, domain uint32) ( []byte, error)  {
 	return resp.Response, nil
 }
 
+func zero(target ep11.Target_t, domain uint32, keyBytes []byte) (  error)  {
+        _ , err := ep11.AdminCommand(target,domain, C.XCP_ADM_ZEROIZE,nil,[][]byte{keyBytes})        
+        if err != nil {    
+            return err
+        } 
+        return nil
+}
+
+
 func main() {
         if len(os.Args) < 4 {
                 fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> <add|list|remove|setattr|getattr> [options]\n",
+                        "usage: %s <control-domain> <domain> <add|list|remove|setattr|getattr|zero> [options]\n",
                         os.Args[0],
                 )
                 os.Exit(1)
@@ -292,6 +301,15 @@ func main() {
                 }
 	        PrintAdminAttributes(param)
 
+	case "zero":
+                keyBytes, err := ep11.LoadKeyBytes(args)
+                if err != nil {
+                        log.Fatal(err)
+                }
+                err = zero(target, domain,keyBytes)
+                if err != nil {
+                        log.Fatal(err)
+                }
 
         
         default:
