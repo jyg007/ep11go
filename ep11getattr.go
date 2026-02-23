@@ -292,25 +292,37 @@ func main() {
 // **********************************************************************************************************************
 // SCAN CARD ATTRIBUTES
 // **********************************************************************************************************************
+	fmt.Printf("\nDomain Control Points\n")
 	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_DOM_CTRLPOINTS)        
+        if err != nil {    
+            fmt.Println(err)
+        } else  {
+	    	activeCPs := DecodeCPs(resp.Response)
+    		fmt.Println(activeCPs)
+	}
+/*	
+	resp , err = ep11.AdminQuery(target,0, C.XCP_ADMQ_CTRLPOINTS)        
         if err != nil {    
             fmt.Println(err)
         }
 	fmt.Println()
-	fmt.Print("Domain Control Points\n")
+	fmt.Print("Adapter Control Points\n")
 
-    	activeCPs := DecodeCPs(resp.Response)
-    	fmt.Println(activeCPs)
-	
+    	activeCPs = DecodeCPs(resp.Response)
+    	fmt.Println(activeCPs)*/
 	
 // **********************************************************************************************************************
 // SCAN MEK MKVPS
 // **********************************************************************************************************************
-	resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_WK_ORIGINS)        
+	
+
+	fmt.Printf("\nKey Parts pattern         \n")
+resp , err = ep11.AdminQuery(target,domain, C.XCP_ADMQ_WK_ORIGINS)        
         if err != nil {    
             fmt.Println(err)
-        }
-	fmt.Printf("\nKey Parts pattern         %x\n", resp.Response)
+        } else {
+	    fmt.Printf("%x\n", resp.Response)
+	}
 	
 /*
 	fmt.Printf("AdmFunctionId:    %X\n", resp.AdmFunctionId)
