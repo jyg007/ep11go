@@ -319,11 +319,11 @@ func main() {
         if err != nil {    
             fmt.Println(err)
         }
+
 	numEvents := binary.BigEndian.Uint32(resp.Response[:4])
 	fmt.Printf("Number of audit events: %d\n", numEvents)
 
 	for i := uint32(1); i < numEvents; i++ {	
-	fmt.Printf("Number of audit events: %d\n", numEvents)
 		var payload[4]byte
 	        binary.BigEndian.PutUint32(payload[:], i)
 		resp , err := ep11.AdminQueryWithPayload(target,domain, C.XCP_ADMQ_AUDIT_STATE,payload[:])        
