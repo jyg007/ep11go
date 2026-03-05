@@ -247,7 +247,7 @@ func getattr(target ep11.Target_t, domain uint32) ( []byte, error)  {
 func main() {
         if len(os.Args) < 4 {
                 fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> <add|list|del|setattr|getattr|clearmek|genrandommek|zero> [options]\n",
+                        "usage: %s <control-domain> <domain> <add|list|del|setattr|getattr|clearmek|genrandommek|zero>|imprint> [options]\n",
                         os.Args[0],
                 )
                 os.Exit(1)
@@ -267,31 +267,58 @@ func main() {
         target := ep11.HsmInit(controlDomain)
         
         switch action {
+        case "imprint":
+                certBytes, err := ep11.LoadCertBytes(args)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
+        
+                if err := addAdmin(target, domain, certBytes); err != nil {
+                        log.Fatal(err)
+			return
+                }
+                keyBytes, err := ep11.LoadKeyBytes(args)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
+        
+                _, err = setattr(target, domain,keyBytes)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
         
         case "add":
                 certBytes, err := ep11.LoadCertBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
         
                 if err := addAdmin(target, domain, certBytes); err != nil {
                         log.Fatal(err)
+			return
                 }
         
         case "del":
                 skiBytes, err := ep11.LoadSKIBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
         
                 if err := removeAdmin(target, domain, skiBytes); err != nil {
                         log.Fatal(err)
+			return
                 }
         
         case "list":
                 admins, err := listAdmins(target, domain)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
         
                 for _, a := range admins {
@@ -302,11 +329,13 @@ func main() {
                 keyBytes, err := ep11.LoadKeyBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
         
                 param, err := setattr(target, domain,keyBytes)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
                 PrintAdminAttributes(param)
 
@@ -314,6 +343,7 @@ func main() {
                 param, err := getattr(target, domain)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
                 PrintAdminAttributes(param)
 
@@ -321,20 +351,24 @@ func main() {
                 keyBytes, err := ep11.LoadKeyBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
                 err = clearmek(target, domain,keyBytes)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
 
         case "genrandommek":
                 keyBytes, err := ep11.LoadKeyBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
                 mek, err := genrandommek(target, domain,keyBytes)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
 		fmt.Printf("MEK verification pattern     %x\n", mek)
 
@@ -342,14 +376,15 @@ func main() {
                 keyBytes, err := ep11.LoadKeyBytes(args)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
                 err = zero(target, domain,keyBytes)
                 if err != nil {
                         log.Fatal(err)
+			return
                 }
 
-       
         default:
-                log.Fatalf("unknown action: %q (expected add, list, or remove)", action)
+                log.Fatalf("unknown action: %q (expected add|list|del|setattr|getattr|clearmek|genrandommek|zero>|imprint)", action)
         }
 }

@@ -28,6 +28,7 @@ func main() {
 		    C.CKA_VERIFY:true, 
 		    C.CKA_DERIVE:true, 
 		    C.CKA_CLASS: C.CKO_PUBLIC_KEY,
+		    C.CKA_IBM_ATTRBOUND: true,
         }
 	privateKeyECTemplate := ep11.Attributes{
 		    C.CKA_EC_PARAMS:ecParameters,
@@ -35,6 +36,7 @@ func main() {
 		    C.CKA_DERIVE:true, 
 		    C.CKA_CLASS: C.CKO_PRIVATE_KEY,
 		    C.CKA_EXTRACTABLE: false, //required for wrap
+		    C.CKA_IBM_ATTRBOUND: true,
         }
 
 	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)

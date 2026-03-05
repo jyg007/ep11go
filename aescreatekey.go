@@ -13,14 +13,16 @@ import "ep11go/ep11"
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-      target := ep11.HsmInit("3.19 3.16") 
+      target := ep11.HsmInit("3.19") 
  
       keyTemplate := ep11.Attributes{
 	      C.CKA_VALUE_LEN: 32 ,
 		C.CKA_UNWRAP: true,
 		C.CKA_WRAP: true,
+		C.CKA_DECRYPT: true,
 		C.CKA_ENCRYPT: true,
-                C.CKA_EXTRACTABLE: true,
+         //       C.CKA_EXTRACTABLE: true,
+  	 //	 C.CKA_IBM_ATTRBOUND: true,
       }
 
 	var aeskey ep11.KeyBlob
