@@ -15,7 +15,7 @@ import "ep11go/ep11"
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-       target := ep11.HsmInit("3.19") 
+       target := ep11.HsmInit("4.16 3.16") 
  
        ecParameters, err := asn1.Marshal(ep11.OIDNamedCurveSecp256k1)
 
@@ -38,7 +38,7 @@ func main() {
 		    C.CKA_EXTRACTABLE: false, //required for wrap
 		    C.CKA_IBM_ATTRBOUND: true,
         }
-
+	for {
 	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_EC_KEY_PAIR_GEN, nil), publicKeyECTemplate,privateKeyECTemplate)
 
         if err != nil   {
@@ -47,4 +47,5 @@ func main() {
 		fmt.Printf("Private Key:\n%x\n\n", sk)
 		fmt.Printf("\nPublic Key:\n%x\n", pk)
 	}
+}
 }

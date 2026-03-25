@@ -16,11 +16,20 @@ import "fmt"
 import "encoding/hex"
 import "ep11go/ep11"
 import "os"
-
+import "log"
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-      target := ep11.HsmInit("3.19") 
+  	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+
+        // Optional: Fallback if the variable is empty
+        if hsmTarget == "" {
+            log.Fatalf("EP11_IBM_TARGET_HSM not set, using default: %s", hsmTarget)
+                
+        }
+
+        target := ep11.HsmInit(hsmTarget)
+
  
         var err error
 
@@ -47,7 +56,7 @@ func main() {
 	var key ep11.KeyBlob
 	var csum []byte
 	key,csum,err = ep11.UnWrapKey(target, 
-			ep11.Mech(C.CKM_AES_CBC, iv),
+			ep11.Mech(C.CKM_AES_CBC_PAD, iv),
 			aeskey ,
 			data,
 			KeyTemplate,
