@@ -233,6 +233,39 @@ func zero(target ep11.Target_t, domain uint32, keyBytes []byte) (  error)  {
 	return nil
 }
 
+func commit(target ep11.Target_t, domain uint32, keyBytes []byte) error {
+    resp, err := ep11.AdminQuery(target, domain, C.XCP_ADMQ_NEXT_WK)
+    if err != nil {
+          fmt.Printf("Error reading next MEK pattern: %v\n", err)
+          return err
+    }
+
+    resp, err = ep11.AdminCommand(target, domain, C.XCP_ADM_COMMIT_WK,resp.Response , [][]byte{keyBytes})
+    if err != nil {
+        return fmt.Errorf("commit failed: %v", err)
+    }
+
+    fmt.Printf("active mkvp %x\n", resp.Response)
+    return nil
+}
+
+func final(target ep11.Target_t, domain uint32, keyBytes []byte) (  error)  {
+       resp, err := ep11.AdminQuery(target, domain, C.XCP_ADMQ_NEXT_WK)
+       if err != nil {
+             fmt.Printf("Error reading next MEK pattern: %v\n", err)
+	     return err
+       }
+       
+ 
+	mkvp := resp.Response
+        resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_FINALIZE_WK,mkvp[:],nil)        
+        if err != nil {    
+	    return err
+        }
+        fmt.Printf("active mkvp %x\n",resp.Response)
+	return nil
+}
+
 func getattr(target ep11.Target_t, domain uint32) ( []byte, error)  {
         resp , err := ep11.AdminQuery(target,domain, C.XCP_ADMQ_DOM_ATTRS)        
         if err != nil {    
@@ -247,7 +280,7 @@ func getattr(target ep11.Target_t, domain uint32) ( []byte, error)  {
 func main() {
         if len(os.Args) < 4 {
                 fmt.Fprintf(os.Stderr,
-                        "usage: %s <control-domain> <domain> <add|list|del|setattr|getattr|clearmek|genrandommek|zero>|imprint> [options]\n",
+                        "usage: %s <control-domain> <domain> <add|list|del|setattr|getattr|clearmek|genrandommek|zero|final|imprint> [options]\n",
                         os.Args[0],
                 )
                 os.Exit(1)
@@ -383,8 +416,30 @@ func main() {
                         log.Fatal(err)
 			return
                 }
+        case "final":
+                keyBytes, err := ep11.LoadKeyBytes(args)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
+                err = final(target, domain,keyBytes)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
+        case "commit":
+                keyBytes, err := ep11.LoadKeyBytes(args)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
+                err = commit(target, domain,keyBytes)
+                if err != nil {
+                        log.Fatal(err)
+			return
+                }
 
         default:
-                log.Fatalf("unknown action: %q (expected add|list|del|setattr|getattr|clearmek|genrandommek|zero|imprint)", action)
+                log.Fatalf("unknown action: %q (expected add|list|del|setattr|getattr|clearmek|genrandommek|zero|imprint|commit)", action)
         }
 }

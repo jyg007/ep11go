@@ -122,13 +122,12 @@ func wrapSPKI(spki []byte) ([]byte, *rsa.PublicKey, error) {
 
 func main() {
 	if len(os.Args) < 3 {
-        fmt.Fprintf(os.Stderr,
-            "usage: %s <control-domain> <domain> [--key-file <file>] [--key-hex <hex>] [--mek <hex>]\n",
-            os.Args[0],
-        )
-        os.Exit(1)
-   	 }
-
+        	fmt.Fprintf(os.Stderr,
+            	"usage: %s <control-domain> <domain> [--key-file <file>] [--key-hex <hex>] [--mek <hex>] [--new]\n",
+            	os.Args[0],
+        	)
+        	os.Exit(1)
+    	}
 	// Positional args
 	controlDomain := os.Args[1]
 	
@@ -146,7 +145,8 @@ func main() {
 
 	//openssl rand -hex 32	
 	mekHex := fs.String("mek", "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff", "MEK to import (hex)")
-	
+        newOnly := fs.Bool("new", false, "Stop before commit; only stage the key")
+
 	if err := fs.Parse(args); err != nil {
 	    log.Fatal(err)
 	}
@@ -219,9 +219,13 @@ func main() {
         if err != nil {    
             fmt.Println(err)
         }
-//	fmt.Printf("new pending mkxp %x\n",resp.Response)
 
-              
+	if *newOnly {
+        	fmt.Println("New key staged but not committed (stopping before COMMIT_WK).")
+		fmt.Printf("new pending mkxp %x\n",resp.Response)
+	       	return
+    	}
+
 // **********************************************************************************************************************
 // **********************************************************************************************************************
    
