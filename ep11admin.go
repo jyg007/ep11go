@@ -385,6 +385,6 @@ func main() {
                 }
 
         default:
-                log.Fatalf("unknown action: %q (expected add|list|del|setattr|getattr|clearmek|genrandommek|zero>|imprint)", action)
+                log.Fatalf("unknown action: %q (expected add|list|del|setattr|getattr|clearmek|genrandommek|zero|imprint)", action)
         }
 }
