@@ -114,7 +114,6 @@ func wrapSPKI(spki []byte) ([]byte, *rsa.PublicKey, error) {
         if err != nil {
                 return nil, nil, fmt.Errorf("failed creating certificate: %w", err)
         }
-
         return der, rsaPub, nil
 }
 
