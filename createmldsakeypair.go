@@ -2,7 +2,6 @@ package main
 
 /*
 #cgo CFLAGS: -I/usr/include/ep11 -I/usr/include/opencryptoki
-
 #include <stdint.h>
 #include <ep11.h>
 */
@@ -33,7 +32,7 @@ func main() {
 	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_ML_DSA_KEY_PAIR_GEN, nil), publicKeyTemplate,privateKeyTemplate)
 
         if err != nil   {
-                        fmt.Println(err)
+                fmt.Println(err)
         } else {
 		fmt.Printf("Private Key: %x\n\n", sk)
 		fmt.Printf("Public Key: %x\n", pk)
