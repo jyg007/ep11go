@@ -8,38 +8,34 @@ package main
 */
 import "C"
 import "fmt"
-import "encoding/hex"
-import "encoding/asn1"
 import "ep11go/ep11"
+import "os"
+import "log"
 
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-       target := ep11.HsmInit("3.19") 
- 
-       dilithiumStrengthParam, err := asn1.Marshal(ep11.OIDDilithiumR3VHigh) 
+       	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+       	if hsmTarget == "" {
+         log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    	}
+	target := ep11.HsmInit(hsmTarget) 
 
-        if err != nil {
-               panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
-        }
-
-       publicKeyTemplate := ep11.Attributes{
-                C.CKA_IBM_PQC_PARAMS: dilithiumStrengthParam,
+        publicKeyTemplate := ep11.Attributes{
+		C.CKA_IBM_PARAMETER_SET:  C.CKP_IBM_ML_DSA_87,
                 C.CKA_VERIFY:     true,
         }
         privateKeyTemplate := ep11.Attributes{
-                C.CKA_SENSITIVE: true,
                 C.CKA_SIGN:     true,
-                C.CKA_PRIVATE:     true,
         }
 
-	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_DILITHIUM, nil), publicKeyTemplate,privateKeyTemplate)
+	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_ML_DSA_KEY_PAIR_GEN, nil), publicKeyTemplate,privateKeyTemplate)
 
         if err != nil   {
                         fmt.Println(err)
         } else {
-		fmt.Println("Private Key:", hex.EncodeToString(sk))
-		fmt.Println("\nPublic Key:", hex.EncodeToString(pk))
+		fmt.Printf("Private Key: %x\n\n", sk)
+		fmt.Printf("Public Key: %x\n", pk)
 	}
 }
