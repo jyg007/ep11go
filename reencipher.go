@@ -14,7 +14,7 @@ import "ep11go/ep11"
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-      target := ep11.HsmInitNonVirtual("3.19") 
+      target := ep11.HsmInit("3.19") 
  
       keyTemplate := ep11.Attributes{
 	      C.CKA_VALUE_LEN: 16 ,
@@ -25,7 +25,7 @@ func main() {
 
 	var aeskey ep11.KeyBlob
 	for {
-       	aeskey, _ = ep11.GenerateKey(target,
+       	aeskey, _ ,_= ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	fmt.Printf("Generated Key: %x\n", aeskey)

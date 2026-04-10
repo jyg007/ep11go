@@ -2,11 +2,17 @@ package main
 
 import "fmt"
 import "ep11go/ep11"
+import "os"
+import "log"
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-      target := ep11.HsmInitNonVirtual("3.19") 
+  hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+    if hsmTarget == "" {
+         log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    }
+    target := ep11.HsmInit(hsmTarget)
  
       m, _ := ep11.GetMechanismList(target)
       fmt.Printf(m)

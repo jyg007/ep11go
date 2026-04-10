@@ -8,12 +8,17 @@ package main
 import "C"
 import "fmt"
 import "ep11go/ep11"
-
+import "os"
+import "log"
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-      target := ep11.HsmInit("3.16") 
+     hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+    if hsmTarget == "" {
+         log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    }
+    target := ep11.HsmInit(hsmTarget)
  
       keyTemplate := ep11.Attributes{
 	      C.CKA_VALUE_LEN: 32 ,

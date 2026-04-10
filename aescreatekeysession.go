@@ -29,7 +29,7 @@ func main() {
 
 	var aeskey ep11.KeyBlob
 
-       	aeskey, _ = ep11.GenerateKey(target,
+       	aeskey, _ ,_ = ep11.GenerateKey(target,
                 	ep11.Mech(C.CKM_AES_KEY_GEN, nil),
 	                keyTemplate)
 	fmt.Printf("Generated Key: %x\n", aeskey)

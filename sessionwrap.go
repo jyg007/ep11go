@@ -52,7 +52,7 @@ func main() {
                 C.CKA_DECRYPT: true,
                 C.CKA_EXTRACTABLE: true,
          }
-	 aeskey, err := ep11.GenerateKey(target,
+	 aeskey, _,err := ep11.GenerateKey(target,
                         ep11.Mech(C.CKM_AES_KEY_GEN, nil),
                         aeskeyTemplate)
 
