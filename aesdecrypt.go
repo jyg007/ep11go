@@ -11,14 +11,20 @@ import "fmt"
 import "os"
 import "encoding/hex"
 import "ep11go/ep11"
+import "log"
 
 func main() { 
-      target := ep11.HsmInit("3.19") 
+    	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+    	if hsmTarget == "" {
+         	log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    	}
 
-        aeskey, _ := hex.DecodeString(os.Args[1])
-        data,_ := hex.DecodeString(os.Args[2])
+ 	target := ep11.HsmInit(hsmTarget)
 
-	 if len(data) < 16 {
+	aeskey, _ := hex.DecodeString(os.Args[1])
+	data,_ := hex.DecodeString(os.Args[2])
+
+	if len(data) < 16 {
         	fmt.Fprintln(os.Stderr, "Error: ciphertext too short to contain IV")
 	        os.Exit(1)
     	}

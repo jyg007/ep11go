@@ -389,6 +389,10 @@ const (
 	CKM_IBM_EC_X448_RAW                MechanismValue = CKM_VENDOR_DEFINED + 0x10030
 	CKM_IBM_ECDSA_OTHER                MechanismValue = CKM_VENDOR_DEFINED + 0x10031
 	CKM_IBM_EC_AGGREGATE               MechanismValue = CKM_VENDOR_DEFINED + 0x10034
+	CKM_IBM_ML_DSA_KEY_PAIR_GEN        MechanismValue = CKM_VENDOR_DEFINED + 0x10035
+	CKM_IBM_ML_DSA                     MechanismValue = CKM_VENDOR_DEFINED + 0x10036
+	CKM_IBM_ML_KEM_KEY_PAIR_GEN        MechanismValue = CKM_VENDOR_DEFINED + 0x10037
+	CKM_IBM_ML_KEM                     MechanismValue = CKM_VENDOR_DEFINED + 0x10038
 	CKM_IBM_CLEARKEY_TRANSPORT         MechanismValue = CKM_VENDOR_DEFINED + 0x20001
 	CKM_IBM_ATTRIBUTEBOUND_WRAP        MechanismValue = CKM_VENDOR_DEFINED + 0x20004
 	CKM_IBM_TRANSPORTKEY               MechanismValue = CKM_VENDOR_DEFINED + 0x20005
@@ -445,10 +449,16 @@ var (
 	OIDDilithiumR3Weak  = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 7, 4, 4}
 	OIDDilithiumR3Rec   = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 7, 6, 5}
 	OIDDilithiumR3VHigh = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 7, 8, 7}
+	OIDML_DSA_44 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 3, 17}
+	OIDML_DSA_65 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 3, 18}
+	OIDML_DSA_87 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 3, 19}
 
 	// Supported Kyber round 2 strengths with SHAKE-128 as PRF
 	OIDKyberR2Rec  = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 5, 3, 3}
 	OIDKyberR2High = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 5, 4, 4}
+	OIDML_KEM_512 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 4, 1}
+	OIDML_KEM_768 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 4, 2}
+	OIDML_KEM_1024 = asn1.ObjectIdentifier{2, 16, 840, 1, 101, 3, 4, 4, 3}
 
 	// Supported BLS12-381 OIDs
 	OIDBLS12_381ET = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 2, 267, 999, 3, 2}

@@ -11,7 +11,7 @@ import "fmt"
 import "encoding/hex"
 import "ep11go/ep11"
 import "os"
-
+import "log"
 
 
 var target  ep11.Target_t
@@ -21,8 +21,13 @@ const cipherTextOffset uint = 7
 
 
 func main() {
+    hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
 
-    target = ep11.HsmInit("3.19") 
+    if hsmTarget == "" {
+         log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    }
+
+    target := ep11.HsmInit(hsmTarget)
 
     sk, _ := hex.DecodeString(os.Args[1])
     cipheredtext , err := hex.DecodeString(os.Args[2])
@@ -41,7 +46,7 @@ func main() {
 	Params := ep11.KyberParams{Version:C.XCP_KYBER_KEM_VERSION , Mode: C.CK_IBM_KEM_DECAPSULATE , Kdf: C.CKD_NULL ,Cipher: cipheredtext} 
 	
 	NewKeyBytes, _, err :=  ep11.DeriveKey( target , 
-                        ep11.Mech(C.CKM_IBM_KYBER,ep11.NewKyberParams(Params)), 
+                        ep11.Mech(C.CKM_IBM_ML_KEM,ep11.NewKyberParams(Params)), 
                         sk,
                         deriveKyberTemplate  )  
 

@@ -11,35 +11,40 @@ import "fmt"
 import "encoding/hex"
 import "encoding/asn1"
 import "ep11go/ep11"
-
+import "log"
+import "os"
 
 //##########################################################################################################################################################################################
 //##########################################################################################################################################################################################
 func main() { 
-       target := ep11.HsmInit("3.19") 
- 
-       kyberStrengthParam, err := asn1.Marshal(ep11.OIDKyberR2High) 
 
-        if err != nil {
-               panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
-        }
+   	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+
+    	if hsmTarget == "" {
+        	log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    	}
+
+   	 target := ep11.HsmInit(hsmTarget)
+
+ 
+       mlkemStrengthParam, err := asn1.Marshal(ep11.OIDML_KEM_1024) 
+
+       if err != nil {
+              panic(fmt.Errorf("Unable to encode parameter OID: %s", err))
+       }
 
        publicKeyTemplate := ep11.Attributes{
-                C.CKA_CLASS:          C.CKO_PUBLIC_KEY,
-                C.CKA_IBM_PQC_PARAMS: kyberStrengthParam,
-                C.CKA_ENCRYPT:     true,
-                C.CKA_DERIVE:     true,
+                C.CKA_IBM_PQC_PARAMS: 	mlkemStrengthParam,
+                C.CKA_IBM_PARAMETER_SET:  C.CKP_IBM_ML_KEM_1024,
+                C.CKA_DERIVE:     	true,
 
         }
+
         privateKeyTemplate := ep11.Attributes{
-                C.CKA_EXTRACTABLE: false,
-                C.CKA_DECRYPT:     true,
-                C.CKA_DERIVE:     true,
-                C.CKA_CLASS:   C.CKO_PRIVATE_KEY,
+                C.CKA_DERIVE:     	true,
         }
 
-
-	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_KYBER, nil), publicKeyTemplate,privateKeyTemplate)
+	pk, sk , err  := ep11.GenerateKeyPair(target, ep11.Mech(C.CKM_IBM_ML_KEM_KEY_PAIR_GEN, nil), publicKeyTemplate,privateKeyTemplate)
 
         if err != nil   {
                         fmt.Println(err)

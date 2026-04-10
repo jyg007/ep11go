@@ -1,4 +1,4 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createkyberkeypair kyberencapsulate kyberdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh kyberencapsulatehybrid kyberdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp
+all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createmlkemkeypair mlkemencapsulate mlkemdecapsulate aesencrypt aesdecrypt createdilithkeypair signdilith verifydilith aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh mlkemencapsulatehybrid mlkemdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go 
 ep11deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go ep11/helpers.go
@@ -73,7 +73,7 @@ aesreencrypt: aesreencrypt.go
 createblskeypair: createblskeypair.go
 	go build $^
 
-createkyberkeypair: createkyberkeypair.go
+createmlkemkeypair: createmlkemkeypair.go
 	go build $^
 
 createdilithkeypair: createdilithkeypair.go
@@ -124,17 +124,17 @@ createseed: createseed.go $(deps)
 uncipherblob: uncipherblob.go $(deps)
 	go build  uncipherblob.go
 
-kyberencapsulate: kyberencapsulate.go $(deps)
-	go build  kyberencapsulate.go
+mlkemencapsulate: mlkemencapsulate.go $(deps)
+	go build  mlkemencapsulate.go
 
-kyberdecapsulate: kyberdecapsulate.go $(deps)
-	go build  kyberdecapsulate.go
+mlkemdecapsulate: mlkemdecapsulate.go $(deps)
+	go build  mlkemdecapsulate.go
 
-kyberencapsulatehybrid: kyberencapsulatehybrid.go $(deps)
-	go build  kyberencapsulatehybrid.go
+mlkemencapsulatehybrid: mlkemencapsulatehybrid.go $(deps)
+	go build  mlkemencapsulatehybrid.go
 
-kyberdecapsulatehybrid: kyberdecapsulatehybrid.go $(deps)
-	go build  kyberdecapsulatehybrid.go
+mlkemdecapsulatehybrid: mlkemdecapsulatehybrid.go $(deps)
+	go build  mlkemdecapsulatehybrid.go
 
 benchmark4: benchmark4.go $(deps)
 	go build  benchmark4.go
