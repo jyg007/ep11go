@@ -1,7 +1,14 @@
-all: testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createmlkemkeypair mlkemencapsulate mlkemdecapsulate aesencrypt aesdecrypt createmldsakeypair signmldsa verifymldsa aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh mlkemencapsulatehybrid mlkemdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp
+.PHONY: clean all
+
+ALL_BINS = testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createmlkemkeypair mlkemencapsulate mlkemdecapsulate aesencrypt aesdecrypt createmldsakeypair signmldsa verifymldsa aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh mlkemencapsulatehybrid mlkemdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp aeswrap
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go 
 ep11deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go ep11/helpers.go
+
+all: $(ALL_BINS)
+
+clean:
+	rm -f $(ALL_BINS)
 
 keygenc: keygen.c
 	gcc -o keygenc keygen.c -l ep11 -I /usr/include/ep11 -I /usr/include/opencryptoki/
