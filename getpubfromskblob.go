@@ -34,6 +34,7 @@ import (
 	"fmt"
 	"os"
 	"encoding/hex"
+	"log"
 )
 
 
@@ -42,7 +43,11 @@ func main() {
 	var err error
 	blob, _  := hex.DecodeString(os.Args[1])
 
-	target := ep11.HsmInit("3.19")
+	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+    if hsmTarget == "" {
+         log.Fatalf("EP11_IBM_TARGET_HSM not set")
+    }
+    target := ep11.HsmInit(hsmTarget)
 
 
         // Create an ephemeral AES key
@@ -74,7 +79,9 @@ func main() {
 	}
                 
        privateKeyECTemplate := ep11.Attributes{
-                    C.CKA_KEY_TYPE:  C.CKK_EC,
+                    C.CKA_KEY_TYPE:  C.CKK_RSA,
+                    //C.CKA_KEY_TYPE:  C.CKK_EC,
+		      	
 //                    C.CKA_EC_PARAMS:ecParameters,
                     C.CKA_CLASS: C.CKO_PRIVATE_KEY,
         }
