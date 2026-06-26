@@ -104,7 +104,6 @@ func wrapSPKI(spki []byte) ([]byte, *rsa.PublicKey, error) {
                 NotBefore:             time.Now().Add(-time.Hour),
                 NotAfter:              time.Now().Add(180 * 24 * time.Hour),
                 IsCA:                  true,
-                KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageCertSign,
                 ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
                 BasicConstraintsValid: true,
         }
@@ -308,7 +307,7 @@ eContentRaw := asn1.RawValue{
 func main() {
         if len(os.Args) != 3 {
                 fmt.Fprintf(os.Stderr, "usage: %s <control-domain> <domain>\n", os.Args[0])
-                os.Exit(1)
+        //        os.Exit(1)
         }
 
         // 1) Control domain (e.g. "3.19")
@@ -375,22 +374,20 @@ func main() {
 	
 	resp , err = ep11.AdminCommand(target,40, C.XCP_ADM_GEN_DOM_IMPORTER,attr[:],[][]byte{privadmin1Bytes})        
         if err != nil {    
-	    
             fmt.Println(err)
         }
 
-	fmt.Println()
-
-       fmt.Printf("%x\n",resp.Response)
-
-
+	//fmt.Printf("%x\n",resp.Response)
 // **********************************************************************************************************************
 // **********************************************************************************************************************
-	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_EXPORT_WK, resp.Response,[][]byte{privadmin1Bytes})        
+	//importKey, := resp.Response
+        certStr,_ :=hex.DecodeString(os.Args[3])
+	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_EXPORT_WK,certStr ,[][]byte{privadmin1Bytes})        
+
         if err != nil {    
             fmt.Println(err)
         }
-	fmt.Printf(" %x\n",resp.Response)
+	fmt.Printf("%x\n",resp.Response)
 return
               
 // **********************************************************************************************************************
