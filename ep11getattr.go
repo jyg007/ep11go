@@ -187,6 +187,10 @@ var cpNames = map[int]string{
     74: "ALG_RSA_OAEP",
     75: "ALLOW_COMBINED_EXTRACT",
     76: "ALG_EC_PAIRING_FRIENDLY",
+    77: "ALG_DILITHIUM",
+    78: "ALG_KYBER",
+    79: "ALG_ML_DSA",
+    80: "ALG_ML_KEM",
 }
 
 // DecodeCPs returns the names of active CPs in the given []byte

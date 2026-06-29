@@ -11,7 +11,7 @@ package main
 import "C"
 import "ep11go/ep11"
 import (
-	"encoding/binary"
+	//"encoding/binary"
 	"fmt"
 	"encoding/hex"
 	"encoding/pem"
@@ -341,6 +341,7 @@ func main() {
 // **********************************************************************************************************************
 // LOGIN or ADD ADMIN1
 // **********************************************************************************************************************
+/*
 	resp , err:= ep11.AdminCommand(target,40, C.XCP_ADM_DOM_ADMIN_LOGIN,cert1Bytes,nil)        
         if err != nil {    
             fmt.Println(err)
@@ -349,10 +350,11 @@ func main() {
 //	cert1Str,_ :=hex.DecodeString("30820222300d06092a864886f70d01010105000382020f003082020a02820201009b2e455c6283f6b9943791c80ba9826055ee01fd5954d9b4c64602b31afc68b0190aa9e1cb335e36bcc81cbc4d1849decba1df85fca91cdffde3046a8623875677c55454287f47768dd93dac4ab16a01355016b4ee95e87802d8256da84d63579cfc596b76642cddedcd2253a1bfc8949b5c0076d2bafce842d587f6317b9537c91d9cb67e03d4f586854e298911d036430edec262cf2f975047fc7e355d87be40e2ca1de47649b49e4bb92f40a3d43ab910521046e138278b7c3b0b6e887450387e84242147ed300f617a1336dc7544fbf95aa857334158c5c1d86e35c6b2952a3d90bfc2337592d0cdf12e0fbdc4af5209259559d23c7587babd624fae196311e32208a023d1c80df10d4480f7289ce5ed29826d336098442255698f1ab4e8524dcb31cf1006f76613747d3fc214489489bdd3ea1b0b3845f8f5d78bc5e1899f160f3517367349aa6802ed91403ae2436bddad0df427d1ca3b0bc657220bc7d31de1e72b777b2ec13b4760141d9fb29cd4fb21b7753832108379cbda4ee4b3858def7f5acd1019a2eafd7730a02d7090ba106c3975bb20293cd325de39bee4996a99657378f20cc9d65143663faface72903bdadcba60db88fdb48e97f11f673fd00873c9028600ec57be7dd6bbdd4e3cc5980bb25f944e2064f97e73ef23dd433ca5b4f4c5ec266b5fbee6f01d5b35392bf313e6d8a7407d0307bcfd432510203010001")
 //	cert1Str,_ :=hex.DecodeString("3082051f30820307a0030201020214118da053b569c779545d58998142f8bc26ee4bcc300d06092a864886f70d01010b05003011310f300d060355040a0c064d59434f52503020170d3236303231393039333032365a180f32353138313231373039333032365a3011310f300d060355040a0c064d59434f525030820222300d06092a864886f70d01010105000382020f003082020a02820201009b2e455c6283f6b9943791c80ba9826055ee01fd5954d9b4c64602b31afc68b0190aa9e1cb335e36bcc81cbc4d1849decba1df85fca91cdffde3046a8623875677c55454287f47768dd93dac4ab16a01355016b4ee95e87802d8256da84d63579cfc596b76642cddedcd2253a1bfc8949b5c0076d2bafce842d587f6317b9537c91d9cb67e03d4f586854e298911d036430edec262cf2f975047fc7e355d87be40e2ca1de47649b49e4bb92f40a3d43ab910521046e138278b7c3b0b6e887450387e84242147ed300f617a1336dc7544fbf95aa857334158c5c1d86e35c6b2952a3d90bfc2337592d0cdf12e0fbdc4af5209259559d23c7587babd624fae196311e32208a023d1c80df10d4480f7289ce5ed29826d336098442255698f1ab4e8524dcb31cf1006f76613747d3fc214489489bdd3ea1b0b3845f8f5d78bc5e1899f160f3517367349aa6802ed91403ae2436bddad0df427d1ca3b0bc657220bc7d31de1e72b777b2ec13b4760141d9fb29cd4fb21b7753832108379cbda4ee4b3858def7f5acd1019a2eafd7730a02d7090ba106c3975bb20293cd325de39bee4996a99657378f20cc9d65143663faface72903bdadcba60db88fdb48e97f11f673fd00873c9028600ec57be7dd6bbdd4e3cc5980bb25f944e2064f97e73ef23dd433ca5b4f4c5ec266b5fbee6f01d5b35392bf313e6d8a7407d0307bcfd432510203010001a36d306b300f0603551d130101ff040530030101ff300e0603551d0f0101ff0404030202a430130603551d25040c300a06082b0601050507030130140603551d11040d300b82096c6f63616c686f7374301d0603551d0e04160414fe6e65b6c440bbea8d6cd9c0567c9c3ac6ac1dfe300d06092a864886f70d01010b0500038202010065ec14695736bfc4d12da65d3d89af2721acdd5f5a2994006f654cfc1a49a01d5ccd2429a4dfa431728e30c18cd4ff243136ad38b34b3d7de993f446f6151831fbf1499e42f08dbaf63cbe89565ba9eeb421d375c220bba960c678b23a1c30a70908d6ec316f69e33d678a7a48bfca1355ab09fcd40a544f55e9dd83143974edb87539bbffeaca34a9bbed85d7457924a9c004da3b9de7f211a20244d834af24040403b92c49db80aba277a9357e7c0cb6e6b071d2ea2391db75e563a3ef63c33f0360089f1cba394998d9ec72b7db87f38641a9c0cc06a376fcf3327e818f4bd49a118f36a955d0f455b3b0f0f12281095018bf8859e91b85a51a1b0dc77d753881e8f1a64e9dd7c7c4d80952b12131cecebdb98036795cd73f235b0f95cb8b3b7902061e82bce1a509811863ddd3a5bc67246c53481ebe16977149dec054a08d873f3acd7a6ea0ae8719325e83b1ac95af00ab1c1b9fd11b531ff4d9090608faa3e134da22ccf99a7a2ff3cfd0de2e8f68553046130aebd7f5670d0cf5543abe2160d95c94f0343aa160c8d7f7114546d2f3c80d7bcec4835220393065bbf9670f5789c007d5d5a1bf04722c411914af0868597db621f7222825904ecfdf4bd85f44d6e74c059eab5f5891eff14c5d0fa3e674730476c16cd7ab85a0470666d2d92c5e421e82881764432c5e977c9423bf9aba01a2e9bb084a6bb11064263c")
 	fmt.Println()
-
+*/
 // **********************************************************************************************************************
 // SET ATTRIBUTES - IMPRINTNG
 // **********************************************************************************************************************
+/*
 	attrs := []ep11.AdminAttribute{
         	{Attribute: C.XCP_ADMINT_SIGN_THR , Value: 1}, 
         	{Attribute: C.XCP_ADMINT_REVOKE_THR, Value: 1},
@@ -366,9 +368,10 @@ func main() {
             fmt.Println(err)
         }
 	fmt.Println()
-
+*/
 // **********************************************************************************************************************
 // **********************************************************************************************************************
+/*
 	var attr[4]byte
         binary.BigEndian.PutUint32(attr[:], C.XCP_IMPRKEY_RSA_4096)
 	
@@ -376,13 +379,14 @@ func main() {
         if err != nil {    
             fmt.Println(err)
         }
-
+*/
 	//fmt.Printf("%x\n",resp.Response)
 // **********************************************************************************************************************
 // **********************************************************************************************************************
 	//importKey, := resp.Response
+_ = cert1Bytes
         certStr,_ :=hex.DecodeString(os.Args[3])
-	resp , err = ep11.AdminCommand(target,domain, C.XCP_ADM_EXPORT_WK,certStr ,[][]byte{privadmin1Bytes})        
+	resp , err := ep11.AdminCommand(target,domain, C.XCP_ADM_EXPORT_WK,certStr ,[][]byte{privadmin1Bytes})        
 
         if err != nil {    
             fmt.Println(err)

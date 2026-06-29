@@ -74,6 +74,7 @@ func main() {
 	// x001D = certs
 	x001D := octetString(buildTLV(0x001D, 0x00000000, certs.Bytes()))
         x0003 := octetString(buildTLV(0x0003, 0x00008000, []byte{}))
+//        x0003 := octetString(buildTLV(0x0003, 0x00000000, []byte{0x00,0x00, 0x80, 0x00}))
         x001F := octetString(buildTLV(0x001F, 0x00000001, []byte{}))
 
 	// full module state SEQUENCE
