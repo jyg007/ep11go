@@ -392,6 +392,7 @@ _ = cert1Bytes
             fmt.Println(err)
         }
 	fmt.Printf("%x\n",resp.Response)
+	fmt.Printf("%x\n",resp.ResponseCode)
 return
               
 // **********************************************************************************************************************

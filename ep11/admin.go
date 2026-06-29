@@ -327,14 +327,13 @@ func AdminCommand(target C.target_t, hsmDomain uint32, admCmd uint32, payload []
     	// 6️⃣ Parse response
     	var rspBlock AdminResponseBlock
     	_, err = asn1.Unmarshal(response, &rspBlock)
-
    	if err != nil {
         	 return AdminResponseBlock{},    fmt.Errorf("Failed to unmarshall response: %w", err)
 	}
 
     	rc := binary.BigEndian.Uint32(rspBlock.ResponseCode)
     	if rc != 0 {
-		return AdminResponseBlock{}, toError(C.CK_RV(rc))
+		return rspBlock, toError(C.CK_RV(rc))
     	} 
  
 	return rspBlock, nil
