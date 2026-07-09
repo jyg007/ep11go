@@ -321,7 +321,7 @@ func AdminCommand(target C.target_t, hsmDomain uint32, admCmd uint32, payload []
 	// 5️⃣ Call EP11admin with command and optional signatures
 	response, err := EP11admin(target,derBytes, signatures)
         if err != nil {
-          return AdminResponseBlock{},    fmt.Errorf("EP11admin call failed: %w", err)
+              return AdminResponseBlock{},    fmt.Errorf("EP11admin call failed: %w", err)
         }
 
     	// 6️⃣ Parse response
