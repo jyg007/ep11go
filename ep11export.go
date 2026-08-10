@@ -27,7 +27,7 @@ import (
     	"time"
 	"os"
         "strconv"
-
+	"log"
 )
 
 func DomainMask(index, domain uint32) uint32 {
@@ -162,6 +162,40 @@ func parseNode(data []byte) (node, []byte, error) {
         }
 
         return n, data[n.totalLen:], nil
+}
+
+
+func dump2(data []byte) ([]byte, error) {
+	for len(data) > 0 {
+		n, rest, err := parseNode(data)
+		if err != nil {
+			return nil, err
+		}
+
+		if n.tag == 4 && !n.isCompound {
+			value := data[n.valueOffset : n.valueOffset+n.length]
+			t, _, payload, ok := decodeTLV(value)
+			if ok && t == 0x0019 {
+				return payload, nil
+			}
+		}
+
+		value := data[n.valueOffset : n.valueOffset+n.length]
+
+		if n.isCompound {
+			payload, err := dump2(value)
+			if err != nil {
+				return nil, err
+			}
+			if payload != nil {
+				return payload, nil
+			}
+		}
+
+		data = rest
+	}
+
+	return nil, nil // not found
 }
 
 func dump(data []byte )  {
@@ -423,7 +457,7 @@ eContentRaw := asn1.RawValue{
 
 type WrappedKey struct {
 	Version      int
-	KeyID        []byte `asn1:"tag:0,explicit"`
+        PublicKey  asn1.RawValue `asn1:"tag:0,optional"`
 	Algorithm    AlgorithmIdentifier
 	EncryptedKey []byte
 }
@@ -438,7 +472,6 @@ func getexport( der []byte) {
 
 	fmt.Println("SEQUENCE")
 	fmt.Printf("  INTEGER %d\n", obj.Version)
-	fmt.Printf("  [0] %x\n", obj.KeyID)
 	fmt.Println("  SEQUENCE")
 	fmt.Printf("    OBJECT IDENTIFIER %s\n", obj.Algorithm.Algorithm.String())
 	fmt.Printf("  OCTET STRING %x\n", obj.EncryptedKey)
@@ -494,7 +527,15 @@ func main() {
         if err != nil {    
             fmt.Println(err)
         }
-	dump(resp.Response)
+	payload, err := dump2(resp.Response)
+if err != nil {
+	log.Fatal(err)
+}
+
+if payload != nil {
+	fmt.Printf("Payload: %x\n", payload)
+	getexport(payload)
+}
 //	getexport(dump(resp.Response))
 	//fmt.Printf("%x\n",resp.Response)
 	//fmt.Printf("%x\n",resp.ResponseCode)

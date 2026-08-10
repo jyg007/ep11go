@@ -11,9 +11,17 @@ import "fmt"
 import "os"
 import "encoding/hex"
 import "ep11go/ep11"
+import "log"
 
 func main() { 
-      target := ep11.HsmInit("3.19") 
+
+	hsmTarget := os.Getenv("EP11_IBM_TARGET_HSM")
+        if hsmTarget == "" {
+                log.Fatalf("EP11_IBM_TARGET_HSM not set")
+        }
+
+        target := ep11.HsmInit(hsmTarget)
+
 
         aeskey, _ := hex.DecodeString(os.Args[1])
         data :=  make([]byte,16)
