@@ -46,27 +46,61 @@ func uintToBytes(x uint64) []byte {
 }
 
 
-type arena []unsafe.Pointer
+// allocation tracks a single C allocation and its size, so Free can
+// zero the memory (it may have held key material, PINs, IVs, etc.)
+// before releasing it back to the allocator.
+type allocation struct {
+	ptr  unsafe.Pointer
+	size C.size_t
+}
 
+type arena []allocation
+
+// Allocate copies obj into newly calloc'd C memory and returns a pointer/length
+// pair suitable for PKCS#11 structures. Returns a nil pointer and 0 length for
+// an empty obj rather than dereferencing obj[0].
+//
+// Note: on calloc failure this panics rather than returning an error, to avoid
+// changing the function's external signature (and every call site that depends
+// on it). Callers that need graceful OOM handling should recover() around the
+// operation that allocates the arena.
 func (a *arena) Allocate(obj []byte) (C.CK_VOID_PTR, C.CK_ULONG) {
-	cobj := C.calloc(C.size_t(len(obj)), 1)
-	*a = append(*a, cobj)
-	C.memmove(cobj, unsafe.Pointer(&obj[0]), C.size_t(len(obj)))
+	if len(obj) == 0 {
+		return nil, 0
+	}
+	size := C.size_t(len(obj))
+	cobj := C.calloc(size, 1)
+	if cobj == nil {
+		panic("pkcs11: calloc failed (out of memory)")
+	}
+	*a = append(*a, allocation{ptr: cobj, size: size})
+	C.memmove(cobj, unsafe.Pointer(&obj[0]), size)
 	return C.CK_VOID_PTR(cobj), C.CK_ULONG(len(obj))
 }
 
-func (a arena) Free() {
-	for _, p := range a {
-		C.free(p)
+// Free zeroes and releases every allocation made through this arena, then
+// clears the arena so a subsequent Free() call (e.g. a stray defer after an
+// early return, or a copied arena value) is a safe no-op instead of a
+// double-free.
+func (a *arena) Free() {
+	if a == nil {
+		return
 	}
+	for _, x := range *a {
+		if x.ptr != nil && x.size > 0 {
+			C.memset(x.ptr, 0, x.size)
+		}
+		C.free(x.ptr)
+	}
+	*a = nil
 }
 
 
 // Error represents an PKCS#11 error.
-type Error uint
+type Error uint64
 
 func (e Error) Error() string {
-	return fmt.Sprintf("pkcs11: 0x%X: %s", uint(e), strerror[uint(e)])
+	return fmt.Sprintf("pkcs11: 0x%X: %s", uint64(e), strerror[uint64(e)])
 }
 
 func toError(e C.CK_RV) error {
@@ -162,33 +196,6 @@ type Mechanism struct {
 	Parameter []byte
 	generator interface{}
 }
-
-/*
-// NewMechanism returns a pointer to an initialized Mechanism.
-func NewMechanism(mech uint, x interface{}) *Mechanism {
-	m := new(Mechanism)
-	m.Mechanism = mech
-	if x == nil {
-		return m
-	}
-
-	switch p := x.(type) {
-//	case *GCMParams, *OAEPParams, *ECDH1DeriveParams:
-	case *GCMParams, *OAEPParams :
-		// contains pointers; defer serialization until cMechanism
-		m.generator = p
-	case []byte:
-		//fmt.Printf("**********************")
-		//fmt.Printf("%d",len(p))
-		m.Parameter = p
-	default:
-		panic("parameter must be one of type: []byte, *GCMParams, *OAEPParams, *ECDH1DeriveParams")
-	}
-
-	return m
-}
-*/
-
 
 // cAttribute returns the start address and the length of an attribute list.
 func cAttributeList(a []*Attribute) (arena, C.CK_ATTRIBUTE_PTR, C.CK_ULONG) {

@@ -2,7 +2,7 @@ package ep11
 
 // awk '/#define CKR_/{ print $3":\""$2"\"," }' pkcs11t.h
 
-var strerror = map[uint]string{
+var strerror = map[uint64]string{
         0x00000000: "CKR_OK",
         0x00000001: "CKR_CANCEL",
         0x00000002: "CKR_HOST_MEMORY",

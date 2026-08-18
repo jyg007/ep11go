@@ -1,6 +1,6 @@
 .PHONY: clean all
 
-ALL_BINS = testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createmlkemkeypair mlkemencapsulate mlkemdecapsulate aesencrypt aesdecrypt createmldsakeypair signmldsa verifymldsa aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh mlkemencapsulatehybrid mlkemdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp aeswrap
+ALL_BINS = testcrypto aescreatekey createblskeypair blsaggregatepk blsaggregatesig signbls derivekey derivekeybls createseed uncipherblob createmlkemkeypair mlkemencapsulate mlkemdecapsulate aesencrypt aesdecrypt createmldsakeypair signmldsa verifymldsa aescreatekeysession verifybls reencipher reencipher2 getmech aesreencrypt eccreatekeypair ecdh mlkemencapsulatehybrid mlkemdecapsulatehybrid benchmark4 readattr kmsapi rsacreatekeypair ecwrap ecunwrap sessionunwrap sessionwrap spkiunwrap readpubblob readprivblob rsaunwrap aesunwrap ecunwrap2 pkfixasn1 getpubfromskblob ep11login ep11admin ep11load  ep11scanmkvp ep11mload ep11audit  ep11cardadmin ep11getattr ep11cp aeswrap domaininfo ep11export 
 
 deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go 
 ep11deps = ep11/types.go ep11/error.go  ep11/params.go ep11/hsminit.go ep11/ep11.go ep11/constants.go ep11/ep11login.go ep11/helpers.go
@@ -126,49 +126,55 @@ derivekeybls: derivekeybls.go $(deps)
 	go build  derivekeybls.go
 
 createseed: createseed.go $(deps)
-	go build  createseed.go
+	go build createseed.go
 
 uncipherblob: uncipherblob.go $(deps)
-	go build  uncipherblob.go
+	go build uncipherblob.go
 
 mlkemencapsulate: mlkemencapsulate.go $(deps)
-	go build  mlkemencapsulate.go
+	go build mlkemencapsulate.go
 
 mlkemdecapsulate: mlkemdecapsulate.go $(deps)
-	go build  mlkemdecapsulate.go
+	go build mlkemdecapsulate.go
 
 mlkemencapsulatehybrid: mlkemencapsulatehybrid.go $(deps)
-	go build  mlkemencapsulatehybrid.go
+	go build mlkemencapsulatehybrid.go
 
 mlkemdecapsulatehybrid: mlkemdecapsulatehybrid.go $(deps)
-	go build  mlkemdecapsulatehybrid.go
+	go build mlkemdecapsulatehybrid.go
 
 benchmark4: benchmark4.go $(deps)
-	go build  benchmark4.go
+	go build benchmark4.go
 
 ep11login: ep11login.go $(ep11deps)
-	go build  ep11login.go
+	go build ep11login.go
 
 ep11admin: ep11admin.go $(ep11deps)
-	go build  ep11admin.go
+	go build ep11admin.go
 
 ep11load: ep11load.go $(ep11deps)
-	go build  ep11load.go
+	go build ep11load.go
 
 ep11mload: ep11mload.go $(ep11deps)
-	go build  ep11mload.go
+	go build ep11mload.go
 
 ep11scanmkvp: ep11scanmkvp.go $(ep11deps)
-	go build  ep11scanmkvp.go
+	go build ep11scanmkvp.go
 
 ep11audit: ep11audit.go $(ep11deps)
-	go build  ep11audit.go
+	go build ep11audit.go
 
 ep11cardadmin: ep11cardadmin.go $(ep11deps)
-	go build  ep11cardadmin.go
+	go build ep11cardadmin.go
 
 ep11getattr: ep11getattr.go $(ep11deps)
-	go build  ep11getattr.go
+	go build ep11getattr.go
 
 ep11cp: ep11cp.go $(ep11deps)
-	go build  ep11cp.go
+	go build ep11cp.go
+
+domaininfo: domaininfo.go $(ep11deps)
+	go build domaininfo.go
+
+ep11export: ep11export.go $(ep11deps)
+	go build ep11export.go

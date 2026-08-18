@@ -381,15 +381,13 @@ func AdminQuery(target C.target_t, hsmDomain uint32, admCmd uint32) (AdminRespon
 
 func AdminQueryWithPayload(target C.target_t, hsmDomain uint32, admCmd uint32, payload []byte) (AdminResponseBlock, error) {
     var p1 [4]byte
-    var p2 [8]byte
+    //var p2 [8]byte
 
     // Admin function ID (e.g. XCP_ADMQ_DOM_ATTRS, XCP_ADMQ_WK, etc.)
     binary.BigEndian.PutUint32(p1[:], admCmd)
 
     // Domain encoding: domain value in high 32 bits
-    binary.BigEndian.PutUint64(p2[:], uint64(hsmDomain)<<32)
-
-
+    //binary.BigEndian.PutUint64(p2[:], uint64(hsmDomain)<<32)
 
     block := AdminBlock{
         AdmFunctionId: p1[:],

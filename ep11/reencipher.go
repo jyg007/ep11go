@@ -20,6 +20,9 @@ import "unsafe"
 
 func Reencipher(target C.target_t, Key KeyBlob )  (KeyBlob, error)  {
 
+        if len(Key) == 0 {
+                return nil, fmt.Errorf("reencipher: key blob is empty")
+        }
 
         var domain_info C.CK_IBM_DOMAIN_INFO
 	domain_info_len := C.CK_ULONG(unsafe.Sizeof(domain_info))

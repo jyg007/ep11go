@@ -16,17 +16,65 @@ import "unsafe"
 import "errors"
 import "strings"
 import "math/big"
+import "sync"
 //import "encoding/hex"
 
-type KeyBlob []byte  
+type KeyBlob []byte
 
-var LoginBlob C.CK_BYTE_PTR = nil
-var LoginBlobLen C.CK_ULONG = 0
+// loginBlobMu guards loginBlob/loginBlobLen. The previous version stored a
+// Go-slice pointer directly in a package-level C.CK_BYTE_PTR with no
+// synchronization: concurrent SetLoginBlob/read-during-cgo-call use was a
+// data race, and holding a raw pointer into Go-managed memory across an
+// unbounded number of future cgo calls violates Go's cgo pointer-passing
+// rules (a Go pointer passed to C must not be retained past that call).
+//
+// loginBlob now points at C-owned memory that is copied once on Set and
+// freed/replaced atomically, so it has a well-defined lifetime independent
+// of Go's GC, and readers/writers no longer race.
+var (
+	loginBlobMu  sync.RWMutex
+	loginBlob    C.CK_BYTE_PTR = nil
+	loginBlobLen C.CK_ULONG    = 0
+)
 
-
+// SetLoginBlob copies id into newly allocated C memory and installs it as the
+// login blob used by subsequent HSM operations, replacing (and zeroing) any
+// previously installed blob. Note this is still process/package-wide state:
+// all callers on all goroutines share one login blob. If your application
+// needs different login blobs for concurrent operations (e.g. multiple
+// tenants or domains), this global needs to become a value threaded through
+// each call instead of read from a package variable.
 func SetLoginBlob(id []byte) {
-	LoginBlob = C.CK_BYTE_PTR(unsafe.Pointer(&id[0]))
-	LoginBlobLen = C.CK_ULONG(len(id))
+	loginBlobMu.Lock()
+	defer loginBlobMu.Unlock()
+
+	if loginBlob != nil {
+		// zero the previous blob before freeing it — it's credential material
+		C.memset(unsafe.Pointer(loginBlob), 0, C.size_t(loginBlobLen))
+		C.free(unsafe.Pointer(loginBlob))
+		loginBlob = nil
+		loginBlobLen = 0
+	}
+	if len(id) == 0 {
+		return
+	}
+	buf := C.calloc(C.size_t(len(id)), 1)
+	if buf == nil {
+		panic("ep11: calloc failed allocating login blob")
+	}
+	C.memmove(buf, unsafe.Pointer(&id[0]), C.size_t(len(id)))
+	loginBlob = C.CK_BYTE_PTR(buf)
+	loginBlobLen = C.CK_ULONG(len(id))
+}
+
+// getLoginBlob returns the current login blob pointer/length under the read
+// lock. Call sites that previously read the LoginBlob/LoginBlobLen package
+// vars directly should call this instead so reads are synchronized with
+// SetLoginBlob.
+func getLoginBlob() (C.CK_BYTE_PTR, C.CK_ULONG) {
+	loginBlobMu.RLock()
+	defer loginBlobMu.RUnlock()
+	return loginBlob, loginBlobLen
 }
 
 //##########################################################################################################################################################################################
@@ -75,7 +123,8 @@ func GenerateKey(target C.target_t, m []*Mechanism, temp Attributes) (KeyBlob, [
         checkSumLenC := C.CK_ULONG(len(CheckSum))
 
 
-        rv := C.m_GenerateKey( mech, t, tcount, LoginBlob , LoginBlobLen , keyC, &keyLenC, checkSumC, &checkSumLenC, target )
+        lb, lbLen := getLoginBlob()
+        rv := C.m_GenerateKey( mech, t, tcount, lb , lbLen , keyC, &keyLenC, checkSumC, &checkSumLenC, target )
         if rv != C.CKR_OK {
                   e1 := toError(rv)
 		  
@@ -184,7 +233,8 @@ func GenerateKeyPair(target C.target_t, m []*Mechanism, pk Attributes, sk Attrib
         publickeyC := C.CK_BYTE_PTR(unsafe.Pointer(&publicKey[0]))
         publickeyLenC := C.CK_ULONG(len(publicKey))
         
-	rv := C.m_GenerateKeyPair( mech, t1, tcount1, t2,tcount2,LoginBlob,LoginBlobLen , privatekeyC, &privatekeyLenC, publickeyC, &publickeyLenC, target )
+	lb, lbLen := getLoginBlob()
+	rv := C.m_GenerateKeyPair( mech, t1, tcount1, t2,tcount2,lb,lbLen , privatekeyC, &privatekeyLenC, publickeyC, &publickeyLenC, target )
         if rv != C.CKR_OK {
                   e1 := toError(rv)
 		  return nil,nil, e1
@@ -227,7 +277,8 @@ func DeriveKey(target C.target_t, m []*Mechanism, bk KeyBlob, attr Attributes)  
         dataC = nil
 	dataLenC := C.CK_ULONG(len(data))
 
-	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,LoginBlob,LoginBlobLen,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
+	lb, lbLen := getLoginBlob()
+	rv  := C.m_DeriveKey(mech, t1, tcount1,baseKeyC,baseKeyLenC,dataC,dataLenC,lb,lbLen,newKeyC,&newKeyLenC,cSumC,&cSumLenC,target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
@@ -334,7 +385,8 @@ func UnWrapKey(target C.target_t, m []*Mechanism, KeK KeyBlob, WrappedKey KeyBlo
         cSumC := C.CK_BYTE_PTR(unsafe.Pointer(&CSum[0]))
         cSumLenC := C.CK_ULONG(len(CSum))
 
-        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, LoginBlob, LoginBlobLen, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
+        lb, lbLen := getLoginBlob()
+        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, lb, lbLen, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)
@@ -372,7 +424,8 @@ func UnWrapKey2(target C.target_t, m []*Mechanism, KeK KeyBlob, MacKey KeyBlob, 
         cSumC := C.CK_BYTE_PTR(unsafe.Pointer(&CSum[0]))
         cSumLenC := C.CK_ULONG(len(CSum))
 
-        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, LoginBlob, LoginBlobLen, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
+        lb, lbLen := getLoginBlob()
+        rv := C.m_UnwrapKey(wrappedC, wrappedLenC, keKC, keKLenC, macKeyC, macKeyLenC, lb, lbLen, mech, t, tcount, unwrappedC, &unwrappedLenC, cSumC, &cSumLenC, target)
 
         if rv != C.CKR_OK {
                   e1 := toError(rv)

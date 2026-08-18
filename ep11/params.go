@@ -174,69 +174,18 @@ type ECDH1DeriveParams struct {
 
 // NewECDH1DeriveParams creates a CK_ECDH1_DERIVE_PARAMS structure suitable for use with the CKM_ECDH1_DERIVE mechanism.
 func NewECDH1DeriveParams(p ECDH1DeriveParams) []byte {
-	var params C.CK_ECDH1_DERIVE_PARAMS
-	if len(p.SharedData) == 0  {
-		params = C.CK_ECDH1_DERIVE_PARAMS{
-			kdf :  C.CK_EC_KDF_TYPE(p.KDF),
-			ulSharedDataLen: C.CK_ULONG(0),
-			pSharedData: C.CK_BYTE_PTR(nil),
-			ulPublicDataLen: C.CK_ULONG(len(p.PublicData)),
-			pPublicData: C.CK_BYTE_PTR(unsafe.Pointer(&p.PublicData[0])),
-		}
-	} else {
-		params = C.CK_ECDH1_DERIVE_PARAMS{
-			kdf :  C.CK_EC_KDF_TYPE(p.KDF),
-			ulSharedDataLen: C.CK_ULONG(len(p.SharedData)),
-			pSharedData:  C.CK_BYTE_PTR(unsafe.Pointer(&p.SharedData[0])),
-			ulPublicDataLen: C.CK_ULONG(len(p.PublicData)),
-			pPublicData: C.CK_BYTE_PTR(unsafe.Pointer(&p.PublicData[0])),
-		}
-	}
-        return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
-}
-/*
-func cECDH1DeriveParams(p *ECDH1DeriveParams, arena arena) ([]byte, arena) {
+	// getBytePtr returns nil for an empty/nil slice instead of panicking on
+	// slice[0], so both SharedData and PublicData are safe here even if either
+	// (or both) is empty.
 	params := C.CK_ECDH1_DERIVE_PARAMS{
-		kdf: C.CK_EC_KDF_TYPE(p.KDF),
+		kdf:             C.CK_EC_KDF_TYPE(p.KDF),
+		ulSharedDataLen: C.CK_ULONG(len(p.SharedData)),
+		pSharedData:     getBytePtr(p.SharedData),
+		ulPublicDataLen: C.CK_ULONG(len(p.PublicData)),
+		pPublicData:     getBytePtr(p.PublicData),
 	}
-
-	// SharedData MUST be null if key derivation function (KDF) is CKD_NULL
-	if len(p.SharedData) != 0 {
-		sharedData, sharedDataLen := arena.Allocate(p.SharedData)
-		C.putECDH1SharedParams(&params, sharedData, sharedDataLen)
-	}
-
-	publicKeyData, publicKeyDataLen := arena.Allocate(p.PublicKeyData)
-	C.putECDH1PublicParams(&params, publicKeyData, publicKeyDataLen)
-
-	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params)), arena
+	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
 }
-
-/*
-type RSAAESKeyWrapParams struct {
-	AESKeyBits uint
-	OAEPParams OAEPParams
-}
-
-func cRSAAESKeyWrapParams(p *RSAAESKeyWrapParams, arena arena) ([]byte, arena) {
-	var param []byte
-	params := C.CK_RSA_AES_KEY_WRAP_PARAMS {
-		ulAESKeyBits: C.CK_MECHANISM_TYPE(p.AESKeyBits),
-	}
-
-	param, arena = cOAEPParams(&p.OAEPParams, arena)
-	if len(param) != 0 {
-		buf, _ := arena.Allocate(param)
-		C.putRSAAESKeyWrapParams(&params, buf)
-	}
-	return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params)), arena
-}
-*/
-/*
-type  ECSGParams struct {
-	Type  C.int
-}
-*/
 func NewECSGParams( t C.int) []byte {
     p := make([]byte, 4)
     binary.BigEndian.PutUint32(p, uint32(t))	
@@ -291,7 +240,7 @@ func NewECAGGParams( p ECAGGParams) []byte {
 	    version: 		C.CK_ULONG(p.Version),
 	    mode: 		C.CK_ULONG(p.Mode),
 	    perElementSize: 	C.CK_ULONG(p.PerElementSize),
-	    pElements:  	C.CK_BYTE_PTR(unsafe.Pointer(&p.Elements[0])),
+	    pElements:  	getBytePtr(p.Elements),
             ulElementsLen: 	C.CK_ULONG(len(p.Elements)),
      }
     return memBytes(unsafe.Pointer(&params), unsafe.Sizeof(params))
