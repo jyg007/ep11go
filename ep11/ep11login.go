@@ -384,7 +384,7 @@ func getLoginImporterKey(target Target_t) (ski [C.XCP_CERTHASH_BYTES]byte, tcoun
 	//fmt.Printf("Raw m_get_xcp_info data: %x\n", res[:resLen])
         if (rv != C.CKR_OK) {
                 fmt.Printf("Failed to query domain information m_get_xcp_info rc: 0x%lx",  rv)
-		err = ToError(uint64(rv))
+		err = toError(rv)
 
                 return 
         }
@@ -420,7 +420,7 @@ func getLoginImporterKey(target Target_t) (ski [C.XCP_CERTHASH_BYTES]byte, tcoun
 
 	if len(skiField) != C.XCP_CERTHASH_BYTES {
 		fmt.Printf("SKI length unexpected: %d != %d\n", len(skiField), C.XCP_CERTHASH_BYTES)
-		err = ToError(uint64(C.CKR_BUFFER_TOO_SMALL))
+		err = toError(C.CKR_BUFFER_TOO_SMALL)
 		return
 	}
 	copy(ski[:], skiField)
@@ -758,7 +758,7 @@ func doLoginExtended( FNoperation int, pin []byte, target Target_t) ([]byte, err
 		)
 		if rc != C.CKR_OK {
 			fmt.Printf("login extended failed")
-			return  nil, ToError(uint64(rc))
+			return  nil, toError(rc)
 		}
 	case FNID_LogoutExtended:
 		rc := C.m_LogoutExtended(
@@ -769,7 +769,7 @@ func doLoginExtended( FNoperation int, pin []byte, target Target_t) ([]byte, err
 		)
 		if rc != C.CKR_OK {
 			fmt.Printf("logout extended failed")
-			return  nil, ToError(uint64(rc))
+			return  nil, toError(rc)
 		}
 		return nil, nil
 	}

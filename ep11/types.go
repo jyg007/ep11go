@@ -111,12 +111,14 @@ func toError(e C.CK_RV) error {
 }
 
 // In ep11 package
+/*
 func ToError(rv uint64) error {
     if rv == C.CKR_OK {
         return nil
     }
     return fmt.Errorf("CKR error: 0x%x", rv)
 }
+*/
 
 // NewAttribute allocates a Attribute and returns a pointer to it.
 // Note that this is merely a convenience function, as values returned

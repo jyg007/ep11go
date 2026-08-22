@@ -16,23 +16,14 @@ import "unsafe"
 import "errors"
 import "strings"
 import "math/big"
-import "sync"
 //import "encoding/hex"
 
 type KeyBlob []byte
 
-// loginBlobMu guards loginBlob/loginBlobLen. The previous version stored a
-// Go-slice pointer directly in a package-level C.CK_BYTE_PTR with no
-// synchronization: concurrent SetLoginBlob/read-during-cgo-call use was a
-// data race, and holding a raw pointer into Go-managed memory across an
-// unbounded number of future cgo calls violates Go's cgo pointer-passing
-// rules (a Go pointer passed to C must not be retained past that call).
-//
-// loginBlob now points at C-owned memory that is copied once on Set and
-// freed/replaced atomically, so it has a well-defined lifetime independent
-// of Go's GC, and readers/writers no longer race.
+//Login Blob should be set during the hsminit.  It will be used for all ep11 calls and this is on purpose
+//Alternative can be to pass a specific loginBlob for the call.
+//It happens that most use cases does not require this.
 var (
-	loginBlobMu  sync.RWMutex
 	loginBlob    C.CK_BYTE_PTR = nil
 	loginBlobLen C.CK_ULONG    = 0
 )
@@ -45,9 +36,6 @@ var (
 // tenants or domains), this global needs to become a value threaded through
 // each call instead of read from a package variable.
 func SetLoginBlob(id []byte) {
-	loginBlobMu.Lock()
-	defer loginBlobMu.Unlock()
-
 	if loginBlob != nil {
 		// zero the previous blob before freeing it — it's credential material
 		C.memset(unsafe.Pointer(loginBlob), 0, C.size_t(loginBlobLen))
@@ -72,8 +60,6 @@ func SetLoginBlob(id []byte) {
 // vars directly should call this instead so reads are synchronized with
 // SetLoginBlob.
 func getLoginBlob() (C.CK_BYTE_PTR, C.CK_ULONG) {
-	loginBlobMu.RLock()
-	defer loginBlobMu.RUnlock()
 	return loginBlob, loginBlobLen
 }
 
@@ -557,7 +543,12 @@ func EP11admin(target C.target_t, command, signatures []byte) ([]byte, error) {
 	response1C :=  (*C.uchar)(unsafe.Pointer(&response1[0]))
         response1lenC := C.ulong(len(response1))
 
-	commandC :=(*C.uchar)(C.CBytes(command))
+	//commandC :=(*C.uchar)(C.CBytes(command))
+	commandC := C.CBytes(command)
+	if commandC == nil && len(command) != 0 {
+    		return nil, errors.New("failed to allocate command buffer")
+	}
+	defer C.free(commandC)
 	commandLenC := C.ulong(len(command))
 
         var sigInfoBytesC *C.uchar
@@ -567,7 +558,7 @@ func EP11admin(target C.target_t, command, signatures []byte) ([]byte, error) {
                 sigInfoBytesC = (*C.uchar)(unsafe.Pointer(&signatures[0]))
         }       
 
-        rv := C.m_admin(response1C, &response1lenC,response2sigC , &response2siglenC, commandC, commandLenC, sigInfoBytesC, C.ulong(len(signatures)), target)
+        rv := C.m_admin(response1C, &response1lenC,response2sigC , &response2siglenC,  (*C.uchar)(commandC), commandLenC, sigInfoBytesC, C.ulong(len(signatures)), target)
         if rv != 0 {
 		fmt.Println(toError(rv))
                 return nil,toError(rv)
